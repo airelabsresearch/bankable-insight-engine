@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,8 @@ import {
   CheckCircle,
   FileText,
   X,
-  Layers
+  Layers,
+  Shield
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
@@ -26,8 +26,8 @@ import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
-// Mock data for the identified modules and attributes
 const mockModules = [
   {
     "Module": "Solar",
@@ -201,7 +201,6 @@ const mockModules = [
   }
 ];
 
-// Mock detected sheets
 const mockSheets = [
   { name: "Input Assumptions", type: "inputs", color: "bg-blue-100 text-blue-800" },
   { name: "CAPEX Calculation", type: "calculation", color: "bg-amber-100 text-amber-800" },
@@ -211,7 +210,6 @@ const mockSheets = [
   { name: "Sensitivity", type: "analysis", color: "bg-purple-100 text-purple-800" }
 ];
 
-// Component to display a module in the analysis results
 const ModuleCard = ({ moduleName, attributes }) => {
   return (
     <div className="border rounded-lg p-4 hover:border-bankable-300 transition-colors bg-white shadow-sm">
@@ -244,9 +242,9 @@ const FileUploadPage: React.FC = () => {
   const [groupedModules, setGroupedModules] = useState<Record<string, any[]>>({});
   
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Group modules by module name
     if (uploadState === 'analyzed') {
       const grouped = mockModules.reduce((acc, item) => {
         if (!acc[item.Module]) {
@@ -309,7 +307,6 @@ const FileUploadPage: React.FC = () => {
         clearInterval(interval);
         setUploadState('success');
         
-        // After upload completes, start analysis simulation
         setTimeout(() => {
           startAnalysis();
         }, 500);
@@ -322,7 +319,6 @@ const FileUploadPage: React.FC = () => {
     setAnalysisProgress(0);
     setAnalysisLog([]);
     
-    // Mock analysis steps and progress
     const steps = [
       { message: "Scanning Excel structure...", duration: 600 },
       { message: "Identifying input sheets...", duration: 800 },
@@ -345,7 +341,6 @@ const FileUploadPage: React.FC = () => {
         setAnalysisStep(step.message);
         setAnalysisLog(prev => [...prev, step.message]);
         
-        // Update progress based on step
         const progressIncrement = 100 / steps.length;
         const startProgress = currentProgress;
         const targetProgress = startProgress + progressIncrement;
@@ -361,19 +356,15 @@ const FileUploadPage: React.FC = () => {
             currentProgress = targetProgress;
             currentStep++;
             
-            // Add completion message for this step
             setAnalysisLog(prev => [...prev, `✅ ${step.message.replace('...', '')}`]);
             
-            // Move to next step after a delay
             setTimeout(simulateAnalysis, 100);
           }
         }, step.duration / 20);
       } else {
-        // Analysis complete
         setAnalysisProgress(100);
         setAnalysisStep("Analysis complete!");
         
-        // Show completion messages
         setAnalysisLog(prev => [
           ...prev, 
           "✅ Analysis complete!",
@@ -388,7 +379,6 @@ const FileUploadPage: React.FC = () => {
       }
     };
     
-    // Start the simulation
     simulateAnalysis();
   };
 
@@ -408,6 +398,14 @@ const FileUploadPage: React.FC = () => {
       title: "Model Successfully Analyzed",
       description: "Your model has been processed and is ready for scenario planning.",
     });
+  };
+
+  const handleGoToRiskAnalysis = () => {
+    toast({
+      title: "Redirecting to Risk Analysis",
+      description: "Opening risk analysis tools for your model.",
+    });
+    navigate('/risk');
   };
 
   const renderUploadView = () => (
@@ -672,10 +670,14 @@ const FileUploadPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-center mt-6">
+            <div className="flex flex-wrap justify-center gap-4 mt-6">
               <Button size="lg" onClick={handleContinueToExplorer}>
                 Continue to Module Explorer
                 <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+              <Button size="lg" variant="outline" onClick={handleGoToRiskAnalysis}>
+                Go to Risk Analysis
+                <Shield className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>
@@ -706,14 +708,19 @@ const FileUploadPage: React.FC = () => {
             <FileText className="h-12 w-12 text-bankable-400 mx-auto" />
             <h3 className="mt-4 text-lg font-medium text-bankable-700">Model Ready for Scenario Development</h3>
             <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-              Your model has been processed and organized into modules. You can now create scenarios by modifying these modules.
+              Your model has been processed and organized into modules. You can now create scenarios or analyze risks.
             </p>
-            <Button className="mt-6" onClick={() => {
-              // Navigate to Scenarios page
-              window.location.href = '/scenarios';
-            }}>
-              Create Your First Scenario
-            </Button>
+            <div className="mt-6 flex flex-wrap justify-center gap-4">
+              <Button onClick={() => {
+                window.location.href = '/scenarios';
+              }}>
+                Create Your First Scenario
+              </Button>
+              <Button variant="outline" onClick={handleGoToRiskAnalysis}>
+                Analyze Project Risks
+                <Shield className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -783,7 +790,6 @@ const FileUploadPage: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Analysis Results Sheet */}
       <Sheet open={showAnalysisSheet} onOpenChange={setShowAnalysisSheet}>
         <SheetContent className="sm:max-w-lg">
           <SheetHeader>
@@ -820,6 +826,10 @@ const FileUploadPage: React.FC = () => {
             </Button>
             <Button variant="outline" onClick={() => setShowAnalysisSheet(false)}>
               View Detailed Analysis
+            </Button>
+            <Button variant="outline" onClick={handleGoToRiskAnalysis}>
+              Go to Risk Analysis
+              <Shield className="h-4 w-4 ml-2" />
             </Button>
           </div>
         </SheetContent>
