@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileUp, UploadIcon, CheckCircle2, AlertCircle, UploadCloud, FileSpreadsheet, Table, Grid3X3 } from 'lucide-react';
+import { FileUp, Upload as UploadIcon, CheckCircle2, AlertCircle, UploadCloud, FileSpreadsheet, Table, Grid3X3 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -45,7 +44,6 @@ const FileUploadPage: React.FC = () => {
   const handleFiles = (files: FileList) => {
     const file = files[0];
     
-    // Check if file is Excel
     const validExts = ['.xlsx', '.xls', '.xlsm', '.csv'];
     const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     
@@ -57,7 +55,6 @@ const FileUploadPage: React.FC = () => {
     setFileName(file.name);
     setUploadState('uploading');
     
-    // Simulate upload
     let progress = 0;
     const interval = setInterval(() => {
       progress += 5;

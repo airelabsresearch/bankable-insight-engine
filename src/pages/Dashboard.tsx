@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowTrendingUp, ArrowTrendingDown, BarChart3, FileSpreadsheet, GitBranch, ShieldCheck } from 'lucide-react';
+import { TrendingUp, TrendingDown, BarChart3, FileSpreadsheet, GitBranch, ShieldCheck, Package, Box } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Link } from 'react-router-dom';
@@ -24,12 +24,12 @@ const Dashboard: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-            <Boxes className="h-4 w-4 text-muted-foreground" />
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="stats-value">7</div>
             <p className="stats-label flex items-center mt-1">
-              <ArrowTrendingUp className="h-4 w-4 text-eco-600 mr-1" />
+              <TrendingUp className="h-4 w-4 text-eco-600 mr-1" />
               <span className="text-eco-600">+2</span> this month
             </p>
           </CardContent>
@@ -43,7 +43,7 @@ const Dashboard: React.FC = () => {
           <CardContent>
             <div className="stats-value">24</div>
             <p className="stats-label flex items-center mt-1">
-              <ArrowTrendingUp className="h-4 w-4 text-eco-600 mr-1" />
+              <TrendingUp className="h-4 w-4 text-eco-600 mr-1" />
               <span className="text-eco-600">+8</span> this week
             </p>
           </CardContent>
@@ -57,7 +57,7 @@ const Dashboard: React.FC = () => {
           <CardContent>
             <div className="stats-value">12</div>
             <p className="stats-label flex items-center mt-1">
-              <ArrowTrendingDown className="h-4 w-4 text-orange-500 mr-1" />
+              <TrendingDown className="h-4 w-4 text-orange-500 mr-1" />
               <span className="text-orange-500">-3</span> from last week
             </p>
           </CardContent>
@@ -71,7 +71,7 @@ const Dashboard: React.FC = () => {
           <CardContent>
             <div className="stats-value">18</div>
             <p className="stats-label flex items-center mt-1">
-              <ArrowTrendingUp className="h-4 w-4 text-eco-600 mr-1" />
+              <TrendingUp className="h-4 w-4 text-eco-600 mr-1" />
               <span className="text-eco-600">+5</span> this month
             </p>
           </CardContent>
@@ -173,7 +173,7 @@ const Dashboard: React.FC = () => {
               </Link>
               <Link to="/projects">
                 <Button variant="outline" className="w-full h-full py-8 flex flex-col items-center justify-center space-y-2">
-                  <Boxes className="h-8 w-8 text-bankable-600" />
+                  <Box className="h-8 w-8 text-bankable-600" />
                   <span>View Projects</span>
                 </Button>
               </Link>

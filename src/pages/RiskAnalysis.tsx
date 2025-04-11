@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  BarChart, GitBranch, ShieldAlert, Sigma, ArrowsUpDown, 
+  BarChart, GitBranch, ShieldAlert, Sigma, ArrowUpDown, 
   SlidersHorizontal, History, Clipboard, Plus, BarChart2
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -182,7 +181,7 @@ const RiskAnalysis: React.FC = () => {
                     </SelectContent>
                   </Select>
                   <Button className="eco-gradient">
-                    <ArrowsUpDown className="mr-2 h-4 w-4" />
+                    <ArrowUpDown className="mr-2 h-4 w-4" />
                     Run Analysis
                   </Button>
                 </div>
