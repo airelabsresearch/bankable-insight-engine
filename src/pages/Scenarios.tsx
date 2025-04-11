@@ -2,7 +2,20 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GitBranch, Plus, GitMerge, GitGraph, Table, BarChart2, Copy, Trash2, ExternalLink, PlusCircle, Minus, RefreshCw } from 'lucide-react';
+import { 
+  GitBranch, 
+  Plus, 
+  GitMerge, 
+  GitGraph, 
+  Table, 
+  BarChart2, 
+  Copy, 
+  Trash2, 
+  ExternalLink, 
+  PlusCircle, 
+  Minus, 
+  RefreshCw 
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
@@ -17,6 +30,8 @@ import {
 } from '@/components/ui/dialog';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { NewScenarioDialog } from '@/components/scenario/NewScenarioDialog';
+import { useToast } from "@/hooks/use-toast";
 
 const scenariosData = [
   {
@@ -134,12 +149,51 @@ const templateData = [
 ];
 
 const Scenarios: React.FC = () => {
+  const { toast } = useToast();
   const [selectedScenario, setSelectedScenario] = useState<number | null>(null);
   const [showAddModuleDialog, setShowAddModuleDialog] = useState(false);
+  const [showNewScenarioDialog, setShowNewScenarioDialog] = useState(false);
+  const [scenarios, setScenarios] = useState(scenariosData);
 
   const handleAddModule = (scenarioId: number) => {
     setSelectedScenario(scenarioId);
     setShowAddModuleDialog(true);
+  };
+
+  const handleCreateScenario = (scenarioData: any) => {
+    const newScenario = {
+      id: scenarios.length + 1,
+      name: scenarioData.name,
+      description: scenarioData.description,
+      type: scenarioData.type,
+      project: scenarioData.project,
+      changes: [],
+      modules: {
+        existing: scenarioData.modules.existing.map((m: any) => ({ 
+          id: m.id, 
+          name: m.name, 
+          status: 'unchanged'
+        })),
+        added: scenarioData.modules.added.map((m: any) => ({ 
+          id: m.id, 
+          name: m.name, 
+          count: m.quantity || 1 
+        })),
+        swapped: scenarioData.modules.swapped.map((m: any) => ({ 
+          id: m.id, 
+          name: m.name, 
+          newModule: m.swappedWith, 
+          benefits: `Improved performance and efficiency` 
+        })),
+        removed: scenarioData.modules.removed.map((m: any) => ({ 
+          id: m.id, 
+          name: m.name, 
+          reason: 'Removed in scenario configuration' 
+        }))
+      }
+    };
+
+    setScenarios([...scenarios, newScenario]);
   };
 
   const getModuleBadgeColor = (status: string) => {
@@ -177,7 +231,7 @@ const Scenarios: React.FC = () => {
             Create and analyze different scenarios for your projects
           </p>
         </div>
-        <Button className="eco-gradient">
+        <Button className="eco-gradient" onClick={() => setShowNewScenarioDialog(true)}>
           <Plus className="mr-2 h-4 w-4" /> New Scenario
         </Button>
       </div>
@@ -191,7 +245,7 @@ const Scenarios: React.FC = () => {
         
         <TabsContent value="scenarios" className="mt-0">
           <div className="grid gap-6">
-            {scenariosData.map((scenario) => (
+            {scenarios.map((scenario) => (
               <Card key={scenario.id}>
                 <CardHeader className="pb-3">
                   <div className="flex flex-col md:flex-row md:items-start justify-between">
@@ -569,6 +623,14 @@ const Scenarios: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NewScenarioDialog
+        open={showNewScenarioDialog}
+        onOpenChange={setShowNewScenarioDialog}
+        availableModules={availableModules}
+        projectName="Green Hydrogen Plant"
+        onCreateScenario={handleCreateScenario}
+      />
     </div>
   );
 };

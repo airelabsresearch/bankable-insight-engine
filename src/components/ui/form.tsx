@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
@@ -164,6 +165,27 @@ const FormMessage = React.forwardRef<
 })
 FormMessage.displayName = "FormMessage"
 
+// New helper component for form sections
+const FormSection = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & { title?: string; description?: string }
+>(({ title, description, className, children, ...props }, ref) => {
+  return (
+    <div 
+      ref={ref} 
+      className={cn("border rounded-lg p-4", className)} 
+      {...props}
+    >
+      {title && <h3 className="text-base font-medium mb-1">{title}</h3>}
+      {description && <p className="text-sm text-muted-foreground mb-3">{description}</p>}
+      <div className="space-y-4">
+        {children}
+      </div>
+    </div>
+  )
+})
+FormSection.displayName = "FormSection"
+
 export {
   useFormField,
   Form,
@@ -173,4 +195,5 @@ export {
   FormDescription,
   FormMessage,
   FormField,
+  FormSection,
 }
