@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,8 +12,11 @@ import {
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import SensitivityAnalysisDialog from '@/components/risk/SensitivityAnalysisDialog';
 
 const RiskAnalysis: React.FC = () => {
+  const [sensAnalysisOpen, setSensAnalysisOpen] = useState(false);
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -48,7 +52,7 @@ const RiskAnalysis: React.FC = () => {
 
         <TabsContent value="toolkit" className="mt-0">
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSensAnalysisOpen(true)}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Sensitivity Analysis</CardTitle>
@@ -60,8 +64,8 @@ const RiskAnalysis: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="mt-2">
-                  <Button className="w-full" asChild>
-                    <a href="#sensitivity">Run Analysis</a>
+                  <Button className="w-full" onClick={() => setSensAnalysisOpen(true)}>
+                    Run Analysis
                   </Button>
                 </div>
               </CardContent>
@@ -492,6 +496,12 @@ const RiskAnalysis: React.FC = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Sensitivity Analysis Dialog */}
+      <SensitivityAnalysisDialog 
+        open={sensAnalysisOpen} 
+        onOpenChange={setSensAnalysisOpen} 
+      />
     </div>
   );
 };
