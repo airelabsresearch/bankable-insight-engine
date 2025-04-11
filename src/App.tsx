@@ -8,7 +8,7 @@ import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
-import Upload from "./pages/Upload";
+import FileUploadPage from "./pages/Upload";
 import Scenarios from "./pages/Scenarios";
 import RiskAnalysis from "./pages/RiskAnalysis";
 
@@ -24,7 +24,7 @@ const App = () => (
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="projects" element={<Projects />} />
-            <Route path="upload" element={<Upload />} />
+            <Route path="upload" element={<FileUploadPage />} />
             <Route path="scenarios" element={<Scenarios />} />
             <Route path="risk" element={<RiskAnalysis />} />
             {/* These routes will be implemented in future iterations */}

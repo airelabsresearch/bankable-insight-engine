@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileUp, Upload, CheckCircle2, AlertCircle, UploadCloud, FileSpreadsheet, Table, Grid3X3 } from 'lucide-react';
+import { FileUp, UploadIcon, CheckCircle2, AlertCircle, UploadCloud, FileSpreadsheet, Table, Grid3X3 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 
-const Upload: React.FC = () => {
+const FileUploadPage: React.FC = () => {
   const [dragActive, setDragActive] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
@@ -224,7 +224,7 @@ const Upload: React.FC = () => {
 
                   <div className="bg-muted rounded-lg p-4">
                     <div className="flex items-center space-x-3">
-                      <Upload className="h-5 w-5 text-bankable-700" />
+                      <UploadIcon className="h-5 w-5 text-bankable-700" />
                       <h3 className="font-medium">Creates Modular Architecture</h3>
                     </div>
                     <p className="text-sm text-muted-foreground mt-2">
@@ -294,4 +294,4 @@ const Upload: React.FC = () => {
   );
 };
 
-export default Upload;
+export default FileUploadPage;
