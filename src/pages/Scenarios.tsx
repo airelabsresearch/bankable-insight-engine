@@ -14,7 +14,12 @@ import {
   ExternalLink, 
   PlusCircle, 
   Minus, 
-  RefreshCw 
+  RefreshCw,
+  Loader2,
+  ArrowDownIcon,
+  ArrowUpIcon,
+  Check,
+  AlertTriangle
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -32,6 +37,32 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/h
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NewScenarioDialog } from '@/components/scenario/NewScenarioDialog';
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { 
+  Table as UITable,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from "@/components/ui/table";
+
+type FinancialMetric = {
+  metric: string;
+  baseline: string;
+  scenario: string;
+  delta: string;
+  direction: "up" | "down" | "neutral";
+};
+
+type ScenarioResults = {
+  financialMetrics: FinancialMetric[];
+  timestamp: string;
+  insight: {
+    type: "success" | "warning" | "info";
+    message: string;
+  };
+};
 
 const scenariosData = [
   {
@@ -154,6 +185,8 @@ const Scenarios: React.FC = () => {
   const [showAddModuleDialog, setShowAddModuleDialog] = useState(false);
   const [showNewScenarioDialog, setShowNewScenarioDialog] = useState(false);
   const [scenarios, setScenarios] = useState(scenariosData);
+  const [runningScenarios, setRunningScenarios] = useState<number[]>([]);
+  const [scenarioResults, setScenarioResults] = useState<Record<number, ScenarioResults>>({});
 
   const handleAddModule = (scenarioId: number) => {
     setSelectedScenario(scenarioId);
@@ -196,6 +229,176 @@ const Scenarios: React.FC = () => {
     setScenarios([...scenarios, newScenario]);
   };
 
+  const runScenario = (scenarioId: number) => {
+    setRunningScenarios(prev => [...prev, scenarioId]);
+    
+    setTimeout(() => {
+      const scenario = scenarios.find(s => s.id === scenarioId);
+      
+      if (!scenario) {
+        setRunningScenarios(prev => prev.filter(id => id !== scenarioId));
+        return;
+      }
+      
+      let metrics: FinancialMetric[] = [];
+      let insightMessage = "";
+      let insightType: "success" | "warning" | "info" = "success";
+      
+      if (scenario.type === "Economic") {
+        metrics = [
+          {
+            metric: "IRR",
+            baseline: "12.4%",
+            scenario: "10.8%",
+            delta: "-12.9%",
+            direction: "down"
+          },
+          {
+            metric: "NPV",
+            baseline: "$48.2M",
+            scenario: "$42.6M",
+            delta: "-11.6%",
+            direction: "down"
+          },
+          {
+            metric: "Payback Period",
+            baseline: "7.1 years",
+            scenario: "8.3 years",
+            delta: "+16.9%",
+            direction: "up"
+          },
+          {
+            metric: "LCOH",
+            baseline: "$3.50/kg",
+            scenario: "$3.95/kg",
+            delta: "+12.8%",
+            direction: "up"
+          }
+        ];
+        insightMessage = "NPV is down 11.6% vs. baseline. Consider running a sensitivity analysis.";
+        insightType = "warning";
+      } else if (scenario.type === "Policy") {
+        metrics = [
+          {
+            metric: "IRR",
+            baseline: "14.2%",
+            scenario: "9.5%",
+            delta: "-33.1%",
+            direction: "down"
+          },
+          {
+            metric: "NPV",
+            baseline: "$52.8M",
+            scenario: "$31.4M",
+            delta: "-40.5%",
+            direction: "down"
+          },
+          {
+            metric: "Payback Period",
+            baseline: "6.3 years",
+            scenario: "9.7 years",
+            delta: "+54.0%",
+            direction: "up"
+          },
+          {
+            metric: "LCOE",
+            baseline: "$45/MWh",
+            scenario: "$68/MWh",
+            delta: "+51.1%",
+            direction: "up"
+          }
+        ];
+        insightMessage = "Significant decrease in profitability without policy support. Project may not be viable.";
+        insightType = "warning";
+      } else if (scenario.type === "Technology") {
+        metrics = [
+          {
+            metric: "IRR",
+            baseline: "11.8%",
+            scenario: "14.3%",
+            delta: "+21.2%",
+            direction: "up"
+          },
+          {
+            metric: "NPV",
+            baseline: "$43.5M",
+            scenario: "$56.2M",
+            delta: "+29.2%",
+            direction: "up"
+          },
+          {
+            metric: "Payback Period",
+            baseline: "7.5 years",
+            scenario: "6.2 years",
+            delta: "-17.3%",
+            direction: "down"
+          },
+          {
+            metric: "Round-trip Efficiency",
+            baseline: "85%",
+            scenario: "92%",
+            delta: "+8.2%",
+            direction: "up"
+          }
+        ];
+        insightMessage = "Technology improvements significantly enhance project economics. Consider accelerating deployment.";
+        insightType = "success";
+      } else {
+        metrics = [
+          {
+            metric: "IRR",
+            baseline: "13.0%",
+            scenario: "12.1%",
+            delta: "-6.9%",
+            direction: "down"
+          },
+          {
+            metric: "NPV",
+            baseline: "$45.0M",
+            scenario: "$41.8M",
+            delta: "-7.1%",
+            direction: "down"
+          },
+          {
+            metric: "Payback Period",
+            baseline: "6.8 years",
+            scenario: "7.4 years",
+            delta: "+8.8%",
+            direction: "up"
+          },
+          {
+            metric: "Carbon Intensity",
+            baseline: "120 gCO2e/kWh",
+            scenario: "105 gCO2e/kWh",
+            delta: "-12.5%",
+            direction: "down"
+          }
+        ];
+        insightMessage = "Scenario run complete. Financial metrics recalculated.";
+        insightType = "info";
+      }
+      
+      setScenarioResults(prev => ({
+        ...prev,
+        [scenarioId]: {
+          financialMetrics: metrics,
+          timestamp: new Date().toLocaleString(),
+          insight: {
+            type: insightType,
+            message: insightMessage
+          }
+        }
+      }));
+      
+      toast({
+        title: "Scenario Analysis Complete",
+        description: `The scenario "${scenario.name}" has been analyzed.`,
+      });
+      
+      setRunningScenarios(prev => prev.filter(id => id !== scenarioId));
+    }, 1500);
+  };
+
   const getModuleBadgeColor = (status: string) => {
     switch (status) {
       case 'added':
@@ -219,6 +422,39 @@ const Scenarios: React.FC = () => {
         return <Minus className="h-3 w-3 mr-1" />;
       default:
         return null;
+    }
+  };
+
+  const hasScenarioChanges = (scenario: any) => {
+    return (
+      scenario.changes.length > 0 ||
+      scenario.modules.added.length > 0 ||
+      scenario.modules.swapped.length > 0 ||
+      scenario.modules.removed.length > 0
+    );
+  };
+
+  const getAlertVariant = (type: string) => {
+    switch (type) {
+      case "success":
+        return "default border-green-200 bg-green-50 text-green-800";
+      case "warning":
+        return "default border-yellow-200 bg-yellow-50 text-yellow-800";
+      case "info":
+      default:
+        return "default";
+    }
+  };
+
+  const getAlertIcon = (type: string) => {
+    switch (type) {
+      case "success":
+        return <Check className="h-4 w-4 text-green-500" />;
+      case "warning":
+        return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
+      case "info":
+      default:
+        return <GitMerge className="h-4 w-4" />;
     }
   };
 
@@ -264,9 +500,23 @@ const Scenarios: React.FC = () => {
                       </p>
                     </div>
                     <div className="flex items-center mt-3 md:mt-0 gap-2">
-                      <Button variant="outline" size="sm">
-                        <GitMerge className="mr-2 h-4 w-4" />
-                        Run Scenario
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => runScenario(scenario.id)}
+                        disabled={runningScenarios.includes(scenario.id) || !hasScenarioChanges(scenario)}
+                      >
+                        {runningScenarios.includes(scenario.id) ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Running...
+                          </>
+                        ) : (
+                          <>
+                            <GitMerge className="mr-2 h-4 w-4" />
+                            Run Scenario
+                          </>
+                        )}
                       </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -516,6 +766,86 @@ const Scenarios: React.FC = () => {
                       )}
                     </div>
                   </div>
+
+                  {scenarioResults[scenario.id] && (
+                    <div className="mt-6 pt-6 border-t">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-medium">Scenario Results</h3>
+                        <p className="text-xs text-muted-foreground">
+                          Run at {scenarioResults[scenario.id].timestamp}
+                        </p>
+                      </div>
+
+                      <Alert className={getAlertVariant(scenarioResults[scenario.id].insight.type)}>
+                        <div className="flex items-start">
+                          {getAlertIcon(scenarioResults[scenario.id].insight.type)}
+                          <div className="ml-3">
+                            <AlertTitle className="text-sm font-medium">
+                              {scenarioResults[scenario.id].insight.type === "success" ? "Positive Impact" : 
+                               scenarioResults[scenario.id].insight.type === "warning" ? "Potential Risk" : 
+                               "Analysis Complete"}
+                            </AlertTitle>
+                            <AlertDescription className="text-sm mt-1">
+                              {scenarioResults[scenario.id].insight.message}
+                            </AlertDescription>
+                          </div>
+                        </div>
+                      </Alert>
+
+                      <div className="mt-4">
+                        <h4 className="text-sm font-medium mb-3">Financial Metrics Comparison</h4>
+                        <UITable>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Metric</TableHead>
+                              <TableHead>Baseline</TableHead>
+                              <TableHead>Scenario</TableHead>
+                              <TableHead>Change</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {scenarioResults[scenario.id].financialMetrics.map((metric, index) => (
+                              <TableRow key={index}>
+                                <TableCell className="font-medium">{metric.metric}</TableCell>
+                                <TableCell>{metric.baseline}</TableCell>
+                                <TableCell className="font-medium">{metric.scenario}</TableCell>
+                                <TableCell>
+                                  <div className={`flex items-center ${
+                                    metric.direction === "up" ? 
+                                      (metric.metric === "Payback Period" || metric.metric === "LCOE" || metric.metric === "LCOH" ? 
+                                        "text-red-500" : "text-eco-600") : 
+                                    metric.direction === "down" ? 
+                                      (metric.metric === "Payback Period" || metric.metric === "LCOE" || metric.metric === "LCOH" ? 
+                                        "text-eco-600" : "text-red-500") : 
+                                    ""
+                                  }`}>
+                                    {metric.direction === "up" && <ArrowUpIcon className="h-3 w-3 mr-1" />}
+                                    {metric.direction === "down" && <ArrowDownIcon className="h-3 w-3 mr-1" />}
+                                    {metric.delta}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </UITable>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        <Button variant="outline" size="sm">
+                          <BarChart2 className="h-4 w-4 mr-2" />
+                          Run Sensitivity Analysis
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <GitBranch className="h-4 w-4 mr-2" />
+                          Compare with Other Scenarios
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Export Results
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
