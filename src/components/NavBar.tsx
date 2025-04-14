@@ -28,7 +28,7 @@ const NavBar: React.FC<NavBarProps> = ({ toggleSidebar }) => {
                 <path d="M12 4V20M17 4V20M7 4V20M3 8H21M3 16H21" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-gray-900">Bankable</span>
+            <span className="text-xl font-bold text-gray-900">Aire Labs</span>
           </Link>
         </div>
 
