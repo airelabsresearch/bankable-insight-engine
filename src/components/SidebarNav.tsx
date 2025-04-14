@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, FileSpreadsheet, Boxes, GitBranch, ShieldCheck, FileText, Users, Home, FileJson } from 'lucide-react';
+import { BarChart3, FileSpreadsheet, Boxes, GitBranch, ShieldCheck, FileText, Users, Home } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -19,7 +19,6 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isOpen, setIsOpen }) => {
     { name: 'Model Upload', path: '/upload', icon: FileSpreadsheet },
     { name: 'Scenarios', path: '/scenarios', icon: GitBranch },
     { name: 'Risk Analysis', path: '/risk', icon: ShieldCheck },
-    { name: 'Terms', path: '/terms', icon: FileJson },
     { name: 'Reports', path: '/reports', icon: FileText },
     { name: 'Analytics', path: '/analytics', icon: BarChart3 },
     { name: 'Team', path: '/team', icon: Users },
@@ -63,8 +62,8 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isOpen, setIsOpen }) => {
       <div className="p-4 border-t border-sidebar-border">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-sidebar-foreground/70">Aire Labs v1.0</p>
-            <p className="text-xs text-sidebar-foreground/50">© 2025 Aire Labs</p>
+            <p className="text-xs font-medium text-sidebar-foreground/70">Bankable v1.0</p>
+            <p className="text-xs text-sidebar-foreground/50">© 2025 Bankable</p>
           </div>
         </div>
       </div>

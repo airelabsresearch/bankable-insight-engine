@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,34 +23,10 @@ const projectsData = [
 
 // Configuration for the chart colors
 const chartConfig = {
-  irr: {
-    label: "IRR",
-    theme: { 
-      light: "#10B981", 
-      dark: "#059669" 
-    }
-  },
-  npv: {
-    label: "NPV",
-    theme: { 
-      light: "#3B82F6", 
-      dark: "#2563EB" 
-    }
-  },
-  payback: {
-    label: "Payback",
-    theme: { 
-      light: "#F59E0B", 
-      dark: "#D97706" 
-    }
-  },
-  co2Reduction: {
-    label: "CO₂ Reduction",
-    theme: { 
-      light: "#6366F1", 
-      dark: "#4F46E5" 
-    }
-  }
+  irr: { label: "IRR (%)", theme: { light: "#4ade80" } },
+  npv: { label: "NPV ($M)", theme: { light: "#60a5fa" } },
+  payback: { label: "Payback (Years)", theme: { light: "#f97316" } },
+  co2Reduction: { label: "CO2 Reduction (tons)", theme: { light: "#8b5cf6" } },
 };
 
 const Projects: React.FC = () => {
