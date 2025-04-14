@@ -1,756 +1,694 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { 
-  Search, 
-  Plus, 
-  ChevronDown, 
-  ChevronRight, 
-  Tag, 
-  Filter, 
-  Edit2, 
-  X,
-  Save,
-  Layers,
-  Folder
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { 
-  Select, 
-  SelectContent, 
-  SelectGroup, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Form, 
-  FormControl, 
-  FormDescription, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage,
-  FormSection
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { useToast } from "@/hooks/use-toast";
-import { TermCategoryCard } from "@/components/terms/TermCategoryCard";
-import { TermItem } from "@/components/terms/TermItem";
-import { CreateCategoryDialog } from "@/components/terms/CreateCategoryDialog";
-import { TermsFilters } from "@/components/terms/TermsFilters";
+import React, { useState } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { PlusCircle, Search, Tag, FileText, Edit, Trash2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { TermItem } from '@/components/terms/TermItem';
+import { TermsFilters } from '@/components/terms/TermsFilters';
+import { TermCategoryCard } from '@/components/terms/TermCategoryCard';
+import { CreateCategoryDialog } from '@/components/terms/CreateCategoryDialog';
 
-// Mock data for the terms explorer
-const mockTerms = [
+// Mock data for project terms
+const initialTerms = [
   {
-    "term": "Solar CapEx",
-    "value": 950,
-    "unit": "$/kW",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["solar", "cost"],
-    "categories": ["Solar > Cost", "CapEx > Technology"],
-    "description": "Capital expenditure for solar PV installation per kilowatt"
+    term: 'DSCR',
+    value: 1.2,
+    unit: 'ratio',
+    type: 'financial',
+    source: 'Lender',
+    tags: ['Debt', 'Coverage', 'Ratio'],
+    categories: ['Financial Covenants'],
+    description: 'Debt Service Coverage Ratio - The ratio of operating income available to debt servicing for interest, principal and lease payments.'
   },
   {
-    "term": "Electrolyzer Size",
-    "value": 25,
-    "unit": "MW",
-    "type": "numeric",
-    "source": "derived",
-    "tags": ["hydrogen", "capacity"],
-    "categories": ["Hydrogen > Technical"],
-    "description": "Total capacity of hydrogen electrolyzer system"
+    term: 'IRR',
+    value: 15,
+    unit: '%',
+    type: 'financial',
+    source: 'Model',
+    tags: ['Return', 'Investment'],
+    categories: ['Financial Metrics'],
+    description: 'Internal Rate of Return - A metric used in financial analysis to estimate the profitability of potential investments.'
   },
   {
-    "term": "Inflation Rate",
-    "value": 2.5,
-    "unit": "%",
-    "type": "shared",
-    "source": "manual",
-    "usedIn": ["O&M", "CapEx Escalation", "Revenue Growth"],
-    "tags": ["macro", "policy-sensitive"],
-    "categories": ["Financials > Macro", "O&M > Escalators"],
-    "description": "Annual inflation rate used in financial calculations"
+    term: 'Capacity Factor',
+    value: 35,
+    unit: '%',
+    type: 'technical',
+    source: 'Model',
+    tags: ['Performance', 'Generation'],
+    categories: ['Technical Parameters'],
+    description: 'The ratio of actual energy output over a period to the maximum possible energy output over that period.'
   },
   {
-    "term": "Battery Efficiency",
-    "value": 92,
-    "unit": "%",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["battery", "efficiency"],
-    "categories": ["Battery > Technical"],
-    "description": "Round-trip efficiency of battery storage system"
+    term: 'LCOE',
+    value: 45,
+    unit: '$/MWh',
+    type: 'financial',
+    source: 'Model',
+    tags: ['Cost', 'Energy'],
+    categories: ['Financial Metrics'],
+    description: 'Levelized Cost of Energy - The average net present cost of electricity generation for a generating plant over its lifetime.'
   },
   {
-    "term": "Debt Ratio",
-    "value": 70,
-    "unit": "%",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["financing", "capital structure"],
-    "categories": ["Financing > Structure"],
-    "description": "Portion of project financed with debt vs. equity"
+    term: 'PPA Term',
+    value: 20,
+    unit: 'years',
+    type: 'commercial',
+    source: 'Contract',
+    tags: ['Agreement', 'Duration'],
+    categories: ['Contract Terms'],
+    description: 'The duration of the Power Purchase Agreement between the project and the offtaker.'
   },
   {
-    "term": "Electrolyzer Efficiency",
-    "value": 65,
-    "unit": "%",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["hydrogen", "efficiency"],
-    "categories": ["Hydrogen > Technical"],
-    "description": "Conversion efficiency of the electrolyzer system"
+    term: 'Debt Tenor',
+    value: 15,
+    unit: 'years',
+    type: 'financial',
+    source: 'Lender',
+    tags: ['Debt', 'Duration'],
+    categories: ['Financial Covenants'],
+    description: 'The length of time until the full repayment of a loan is due.'
   },
   {
-    "term": "Battery CAPEX",
-    "value": 275,
-    "unit": "$/kWh",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["battery", "cost"],
-    "categories": ["Battery > Cost", "CapEx > Technology"],
-    "description": "Capital cost per kilowatt-hour of battery storage"
+    term: 'Availability',
+    value: 98,
+    unit: '%',
+    type: 'technical',
+    source: 'Manufacturer',
+    tags: ['Performance', 'Uptime'],
+    categories: ['Technical Parameters'],
+    description: 'The percentage of time that the plant is available to generate electricity.'
   },
   {
-    "term": "PPA Price",
-    "value": 42,
-    "unit": "$/MWh",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["revenue", "contract"],
-    "categories": ["Revenue > Power"],
-    "description": "Power purchase agreement price per megawatt-hour"
+    term: 'Degradation Rate',
+    value: 0.5,
+    unit: '%/year',
+    type: 'technical',
+    source: 'Manufacturer',
+    tags: ['Performance', 'Efficiency'],
+    categories: ['Technical Parameters'],
+    description: 'The rate at which the system\'s output capacity decreases over time.'
   },
   {
-    "term": "PTC Value",
-    "value": 26,
-    "unit": "$/MWh",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["incentive", "policy"],
-    "categories": ["Policy > Incentives", "Revenue > Subsidies"],
-    "description": "Production tax credit value per megawatt-hour"
+    term: 'O&M Cost',
+    value: 10,
+    unit: '$/kW/year',
+    type: 'financial',
+    source: 'Contract',
+    tags: ['Operations', 'Maintenance', 'Cost'],
+    categories: ['Financial Metrics', 'Contract Terms'],
+    description: 'Operations and Maintenance costs for the project per kilowatt of installed capacity per year.'
   },
   {
-    "term": "ITC Rate",
-    "value": 30,
-    "unit": "%",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["incentive", "policy", "tax"],
-    "categories": ["Policy > Incentives", "Tax > Credits"],
-    "description": "Investment tax credit percentage"
+    term: 'P90',
+    value: 85,
+    unit: 'GWh/year',
+    type: 'technical',
+    source: 'Resource Assessment',
+    tags: ['Generation', 'Probability'],
+    categories: ['Technical Parameters'],
+    description: 'The annual production level that has a 90% probability of being exceeded.'
   },
   {
-    "term": "WACC",
-    "value": 7.5,
-    "unit": "%",
-    "type": "derived",
-    "source": "calculated",
-    "tags": ["financing", "returns"],
-    "categories": ["Financing > Returns"],
-    "description": "Weighted average cost of capital"
+    term: 'EPC Cost',
+    value: 1200,
+    unit: '$/kW',
+    type: 'financial',
+    source: 'Contract',
+    tags: ['Capital', 'Construction'],
+    categories: ['Financial Metrics', 'Contract Terms'],
+    description: 'Engineering, Procurement, and Construction cost per kilowatt of installed capacity.',
+    usedIn: ['Financial Model', 'Budget']
   },
   {
-    "term": "Degradation Rate",
-    "value": 0.5,
-    "unit": "%/year",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["solar", "performance"],
-    "categories": ["Solar > Technical"],
-    "description": "Annual degradation rate of solar panel output"
-  },
-  {
-    "term": "Battery Cycles",
-    "value": 4000,
-    "unit": "cycles",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["battery", "technical"],
-    "categories": ["Battery > Technical"],
-    "description": "Total battery cycle life before replacement"
-  },
-  {
-    "term": "O&M Cost - Solar",
-    "value": 12,
-    "unit": "$/kW/year",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["solar", "opex"],
-    "categories": ["Solar > OpEx", "O&M > Technology"],
-    "description": "Annual operations and maintenance cost for solar"
-  },
-  {
-    "term": "O&M Cost - Battery",
-    "value": 8,
-    "unit": "$/kWh/year",
-    "type": "numeric",
-    "source": "manual", 
-    "tags": ["battery", "opex"],
-    "categories": ["Battery > OpEx", "O&M > Technology"],
-    "description": "Annual operations and maintenance cost for battery"
-  },
-  {
-    "term": "Project Life",
-    "value": 25,
-    "unit": "years",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["project", "financial"],
-    "categories": ["Project > Structure", "Financing > Terms"],
-    "description": "Expected operational lifetime of the project"
-  },
-  {
-    "term": "Discount Rate",
-    "value": 8.5,
-    "unit": "%",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["financial", "returns"],
-    "categories": ["Financing > Returns"],
-    "description": "Discount rate used for NPV calculations"
-  },
-  {
-    "term": "Land Cost",
-    "value": 5000,
-    "unit": "$/acre",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["land", "cost"],
-    "categories": ["Project > Site", "CapEx > Land"],
-    "description": "Cost per acre for project land acquisition"
-  },
-  {
-    "term": "Carbon Credit Price",
-    "value": 35,
-    "unit": "$/ton",
-    "type": "numeric",
-    "source": "manual",
-    "tags": ["carbon", "revenue"],
-    "categories": ["Revenue > Carbon", "Policy > Carbon"],
-    "description": "Market price for carbon credits"
-  },
-  {
-    "term": "Debt Term",
-    "value": 15,
-    "unit": "years",
-    "type": "numeric", 
-    "source": "manual",
-    "tags": ["debt", "financing"],
-    "categories": ["Financing > Structure", "Financing > Terms"],
-    "description": "Term length for project debt"
+    term: 'Debt-to-Equity Ratio',
+    value: 75,
+    unit: '%',
+    type: 'financial',
+    source: 'Lender',
+    tags: ['Debt', 'Equity', 'Structure'],
+    categories: ['Financial Covenants'],
+    description: 'The ratio of total debt to total equity in the project financing structure.',
+    usedIn: ['Financial Model']
   }
 ];
 
-// Mock category structure
-const mockCategories = [
+// Categories from terms
+const initialCategories = [
   {
-    name: "Solar",
-    icon: "Sun",
-    subcategories: [
-      { name: "Technical", icon: "Settings" },
-      { name: "Cost", icon: "DollarSign" },
-      { name: "OpEx", icon: "TrendingUp" }
-    ]
+    name: 'Financial Covenants',
+    description: 'Terms that define the financial requirements set by lenders.',
+    count: 3,
+    icon: 'shield-check'
   },
   {
-    name: "Battery",
-    icon: "Battery",
-    subcategories: [
-      { name: "Technical", icon: "Settings" },
-      { name: "Cost", icon: "DollarSign" },
-      { name: "OpEx", icon: "TrendingUp" }
-    ]
+    name: 'Financial Metrics',
+    description: 'Key financial indicators used to evaluate project performance.',
+    count: 3,
+    icon: 'bar-chart'
   },
   {
-    name: "Hydrogen",
-    icon: "Droplets",
-    subcategories: [
-      { name: "Technical", icon: "Settings" },
-      { name: "Cost", icon: "DollarSign" }
-    ]
+    name: 'Technical Parameters',
+    description: 'Technical specifications and performance metrics for the project.',
+    count: 4,
+    icon: 'settings'
   },
   {
-    name: "Financing",
-    icon: "PiggyBank",
-    subcategories: [
-      { name: "Structure", icon: "LayoutGrid" },
-      { name: "Terms", icon: "FileText" },
-      { name: "Returns", icon: "TrendingUp" }
-    ]
-  },
-  {
-    name: "Revenue",
-    icon: "DollarSign",
-    subcategories: [
-      { name: "Power", icon: "Zap" },
-      { name: "Carbon", icon: "Leaf" },
-      { name: "Subsidies", icon: "BadgeCheck" }
-    ]
-  },
-  {
-    name: "Policy",
-    icon: "FileText",
-    subcategories: [
-      { name: "Incentives", icon: "Gift" },
-      { name: "Carbon", icon: "Leaf" }
-    ]
-  },
-  {
-    name: "O&M",
-    icon: "Tool",
-    subcategories: [
-      { name: "Technology", icon: "Settings" },
-      { name: "Escalators", icon: "TrendingUp" }
-    ]
-  },
-  {
-    name: "CapEx",
-    icon: "DollarSign",
-    subcategories: [
-      { name: "Technology", icon: "Cpu" },
-      { name: "Land", icon: "Map" }
-    ]
-  },
-  {
-    name: "Project",
-    icon: "Layers",
-    subcategories: [
-      { name: "Structure", icon: "LayoutGrid" },
-      { name: "Site", icon: "MapPin" }
-    ]
+    name: 'Contract Terms',
+    description: 'Key terms and conditions from project contracts and agreements.',
+    count: 3,
+    icon: 'file-text'
   }
 ];
 
-// Define available tags for filtering
-const availableTags = [
-  { id: "solar", label: "Solar" },
-  { id: "battery", label: "Battery" },
-  { id: "hydrogen", label: "Hydrogen" },
-  { id: "cost", label: "Cost" },
-  { id: "financing", label: "Financing" },
-  { id: "revenue", label: "Revenue" },
-  { id: "efficiency", label: "Efficiency" },
-  { id: "policy", label: "Policy" },
-  { id: "incentive", label: "Incentive" },
-  { id: "tax", label: "Tax" },
-  { id: "technical", label: "Technical" },
-  { id: "opex", label: "OpEx" },
-  { id: "capex", label: "CapEx" },
-  { id: "macro", label: "Macroeconomic" },
-  { id: "carbon", label: "Carbon" }
-];
+// All unique tags from terms
+const allTags = Array.from(new Set(initialTerms.flatMap(term => term.tags)));
 
-const TermsExplorer: React.FC = () => {
+const TermsExplorer = () => {
   const { toast } = useToast();
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [terms, setTerms] = useState(initialTerms);
+  const [categories, setCategories] = useState(initialCategories);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
-  const [expandedSubcategories, setExpandedSubcategories] = useState<Record<string, boolean>>({});
-  const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
-  const [editingTerm, setEditingTerm] = useState<string | null>(null);
-  const [terms, setTerms] = useState(mockTerms);
-  const [categories, setCategories] = useState(mockCategories);
-  
-  // Filter states
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [isAddTermOpen, setIsAddTermOpen] = useState(false);
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("all");
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [termToDelete, setTermToDelete] = useState<number | null>(null);
 
-  // Initialize all categories as expanded
-  useEffect(() => {
-    const expandedState: Record<string, boolean> = {};
-    categories.forEach(category => {
-      expandedState[category.name] = true;
-      category.subcategories.forEach(sub => {
-        expandedState[`${category.name}>${sub.name}`] = true;
-      });
-    });
-    setExpandedCategories(expandedState);
-  }, [categories]);
+  // New term form state
+  const [newTerm, setNewTerm] = useState({
+    term: '',
+    value: '',
+    unit: '',
+    type: 'financial',
+    source: '',
+    tags: [] as string[],
+    categories: [] as string[],
+    description: ''
+  });
 
-  // Filter terms based on search query and filters
-  const filteredTerms = useMemo(() => {
-    return terms.filter(term => {
-      // Search filter
-      const matchesSearch = searchQuery === '' || 
-        term.term.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        term.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        term.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      // Tag filter
-      const matchesTags = selectedTags.length === 0 || 
-        selectedTags.some(tag => term.tags.includes(tag));
-      
-      // Type filter
-      const matchesTypes = selectedTypes.length === 0 || 
-        selectedTypes.includes(term.type);
-      
-      // Source filter
-      const matchesSources = selectedSources.length === 0 || 
-        selectedSources.includes(term.source);
-      
-      // Category filter
-      const matchesCategory = !selectedCategory || 
-        term.categories.some(cat => cat.startsWith(selectedCategory));
-      
-      return matchesSearch && matchesTags && matchesTypes && matchesSources && matchesCategory;
-    });
-  }, [terms, searchQuery, selectedTags, selectedTypes, selectedSources, selectedCategory]);
-
-  // Group terms by category and subcategory
-  const groupedTerms = useMemo(() => {
-    const grouped: Record<string, Record<string, typeof mockTerms>> = {};
+  // Filter terms based on search, category, tags, and type
+  const filteredTerms = terms.filter(term => {
+    // Search query filter
+    const matchesSearch = searchQuery === '' || 
+      term.term.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      term.description.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // Initialize categories and subcategories
-    categories.forEach(category => {
-      grouped[category.name] = {};
-      category.subcategories.forEach(sub => {
-        grouped[category.name][sub.name] = [];
+    // Category filter
+    const matchesCategory = !selectedCategory || term.categories.includes(selectedCategory);
+    
+    // Tags filter - term must include ALL selected tags
+    const matchesTags = selectedTags.length === 0 || 
+      selectedTags.every(tag => term.tags.includes(tag));
+    
+    // Type filter
+    const matchesType = !selectedType || term.type === selectedType;
+    
+    return matchesSearch && matchesCategory && matchesTags && matchesType;
+  });
+  
+  // Handle adding a new term
+  const handleAddTerm = () => {
+    // Validate required fields
+    if (!newTerm.term || newTerm.value === '' || !newTerm.unit || !newTerm.description) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
       });
+      return;
+    }
+    
+    const valueAsNumber = parseFloat(String(newTerm.value));
+    
+    // Add new term to the list
+    setTerms(prev => [...prev, {
+      ...newTerm,
+      value: valueAsNumber,
+      tags: newTerm.tags.length > 0 ? newTerm.tags : ['Uncategorized'],
+      categories: newTerm.categories.length > 0 ? newTerm.categories : []
+    }]);
+    
+    // Reset form
+    setNewTerm({
+      term: '',
+      value: '',
+      unit: '',
+      type: 'financial',
+      source: '',
+      tags: [],
+      categories: [],
+      description: ''
     });
     
-    // Group terms
-    filteredTerms.forEach(term => {
-      term.categories.forEach(categoryPath => {
-        const [category, subcategory] = categoryPath.split(' > ');
-        if (grouped[category] && grouped[category][subcategory]) {
-          if (!grouped[category][subcategory].some(t => t.term === term.term)) {
-            grouped[category][subcategory].push(term);
-          }
-        }
-      });
-    });
+    // Close dialog
+    setIsAddTermOpen(false);
     
-    return grouped;
-  }, [filteredTerms, categories]);
-
-  const toggleCategory = (category: string) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [category]: !prev[category]
-    }));
+    toast({
+      title: "Term added",
+      description: `'${newTerm.term}' has been added to the project terms.`
+    });
   };
-
-  const toggleSubcategory = (category: string, subcategory: string) => {
-    const key = `${category}>${subcategory}`;
-    setExpandedSubcategories(prev => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
+  
+  // Handle adding a new category
+  const handleAddCategory = (categoryData: any) => {
+    setCategories(prev => [...prev, {
+      ...categoryData,
+      count: 0
+    }]);
+    
+    setIsAddCategoryOpen(false);
+    
+    toast({
+      title: "Category added",
+      description: `'${categoryData.name}' has been added to categories.`
+    });
   };
-
-  const handleEditTerm = (term: string, value: number | string) => {
-    setTerms(prev => 
-      prev.map(t => 
-        t.term === term 
-          ? { ...t, value } 
-          : t
-      )
+  
+  // Handle tag selection
+  const handleTagSelect = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag) 
+        : [...prev, tag]
     );
-    setEditingTerm(null);
-    
-    toast({
-      title: "Term updated",
-      description: `${term} has been updated to ${value}${terms.find(t => t.term === term)?.unit}`,
-    });
   };
-
-  const handleCreateCategory = (categoryData: any) => {
-    // In a real app, we would save this to a database
-    toast({
-      title: "Category created",
-      description: `New category "${categoryData.name}" has been created`,
-    });
-    setCreateCategoryOpen(false);
+  
+  // Handle term deletion
+  const confirmDeleteTerm = (index: number) => {
+    setTermToDelete(index);
+    setIsDeleteConfirmOpen(true);
   };
-
-  const handleFilterByTag = (tag: string) => {
-    if (selectedTags.includes(tag)) {
-      setSelectedTags(prev => prev.filter(t => t !== tag));
-    } else {
-      setSelectedTags(prev => [...prev, tag]);
+  
+  const deleteTerm = () => {
+    if (termToDelete !== null) {
+      // Create a new array without the term to delete
+      setTerms(prev => prev.filter((_, idx) => idx !== termToDelete));
+      
+      setIsDeleteConfirmOpen(false);
+      setTermToDelete(null);
+      
+      toast({
+        title: "Term deleted",
+        description: "The term has been removed from the project."
+      });
     }
   };
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setSelectedTags([]);
-    setSelectedTypes([]);
-    setSelectedSources([]);
-    setSelectedCategory(null);
+  
+  // Add tag to new term
+  const handleAddTagToTerm = (tag: string) => {
+    if (!newTerm.tags.includes(tag)) {
+      setNewTerm(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag]
+      }));
+    }
+  };
+  
+  // Remove tag from new term
+  const handleRemoveTagFromTerm = (tag: string) => {
+    setNewTerm(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag)
+    }));
+  };
+  
+  // Add category to new term
+  const handleAddCategoryToTerm = (category: string) => {
+    if (!newTerm.categories.includes(category)) {
+      setNewTerm(prev => ({
+        ...prev,
+        categories: [...prev.categories, category]
+      }));
+    }
+  };
+  
+  // Remove category from new term
+  const handleRemoveCategoryFromTerm = (category: string) => {
+    setNewTerm(prev => ({
+      ...prev,
+      categories: prev.categories.filter(c => c !== category)
+    }));
   };
 
   return (
-    <div className="flex flex-col space-y-6">
-      <div className="flex flex-col space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Project Terms Explorer</h1>
-        <p className="text-muted-foreground">
-          Browse, filter, and edit all project parameters organized by category
-        </p>
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Project Terms</h1>
+          <p className="text-muted-foreground">
+            Manage and explore key terms and parameters used in your project.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setIsAddCategoryOpen(true)}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Category
+          </Button>
+          <Button onClick={() => setIsAddTermOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Term
+          </Button>
+        </div>
       </div>
 
-      <div className="flex flex-col space-y-4">
-        {/* Search and filters row */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="relative">
+      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <div className="flex justify-between items-center">
+          <TabsList>
+            <TabsTrigger value="all">All Terms</TabsTrigger>
+            <TabsTrigger value="categories">Categories</TabsTrigger>
+          </TabsList>
+          <div className="relative w-full max-w-sm ml-auto">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search terms, tags, or descriptions..."
-              className="pl-8"
+              type="search"
+              placeholder={activeTab === "all" ? "Search terms..." : "Search categories..."}
+              className="w-full pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            {searchQuery && (
-              <button
-                className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
-                onClick={() => setSearchQuery('')}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-          
-          <TermsFilters 
-            selectedTags={selectedTags}
-            setSelectedTags={setSelectedTags}
-            selectedTypes={selectedTypes}
-            setSelectedTypes={setSelectedTypes}
-            selectedSources={selectedSources}
-            setSelectedSources={setSelectedSources}
-            availableTags={availableTags}
-            clearFilters={clearFilters}
-          />
-          
-          <div className="flex justify-end">
-            <CreateCategoryDialog 
-              open={createCategoryOpen}
-              onOpenChange={setCreateCategoryOpen}
-              onSave={handleCreateCategory}
-              existingTerms={terms}
-            />
           </div>
         </div>
 
-        {/* Active filters display */}
-        {(selectedTags.length > 0 || selectedTypes.length > 0 || selectedSources.length > 0 || searchQuery) && (
-          <div className="flex flex-wrap gap-2 items-center">
-            <span className="text-sm text-muted-foreground">Active filters:</span>
-            
-            {searchQuery && (
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Search className="h-3 w-3" />
-                {searchQuery}
-                <button className="ml-1" onClick={() => setSearchQuery('')}>
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            )}
-            
-            {selectedTags.map(tag => (
-              <Badge key={tag} variant="outline" className="flex items-center gap-1">
-                <Tag className="h-3 w-3" />
-                {tag}
-                <button className="ml-1" onClick={() => handleFilterByTag(tag)}>
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-            
-            {selectedTypes.map(type => (
-              <Badge key={type} variant="outline" className="flex items-center gap-1">
-                Type: {type}
-                <button 
-                  className="ml-1" 
-                  onClick={() => setSelectedTypes(prev => prev.filter(t => t !== type))}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-            
-            {selectedSources.map(source => (
-              <Badge key={source} variant="outline" className="flex items-center gap-1">
-                Source: {source}
-                <button 
-                  className="ml-1" 
-                  onClick={() => setSelectedSources(prev => prev.filter(s => s !== source))}
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </Badge>
-            ))}
-            
-            {(selectedTags.length > 0 || selectedTypes.length > 0 || selectedSources.length > 0 || searchQuery) && (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="h-7 gap-1 text-xs"
-                onClick={clearFilters}
-              >
-                <X className="h-3 w-3" />
-                Clear all
-              </Button>
-            )}
-          </div>
-        )}
+        <TabsContent value="all" className="space-y-4">
+          <Card>
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-lg">Project Terms</CardTitle>
+              <CardDescription>
+                View and manage all terms used in your project. Filter by category, type, or tags.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              <TermsFilters 
+                categories={categories.map(c => c.name)}
+                tags={allTags}
+                selectedCategory={selectedCategory}
+                selectedTags={selectedTags}
+                selectedType={selectedType}
+                onCategoryChange={setSelectedCategory}
+                onTagSelect={handleTagSelect}
+                onTypeChange={setSelectedType}
+                onClearFilters={() => {
+                  setSelectedCategory(null);
+                  setSelectedTags([]);
+                  setSelectedType(null);
+                }}
+              />
+            </CardContent>
+          </Card>
 
-        {/* Terms display */}
-        <div className="grid grid-cols-1 gap-4">
-          <Tabs defaultValue="categories" className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="categories">Categories</TabsTrigger>
-              <TabsTrigger value="table">Table View</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="categories" className="space-y-4">
-              {categories.map(category => (
-                <TermCategoryCard
-                  key={category.name}
-                  category={category}
-                  terms={groupedTerms[category.name] || {}}
-                  expanded={expandedCategories[category.name]}
-                  expandedSubcategories={expandedSubcategories}
-                  onToggleCategory={() => toggleCategory(category.name)}
-                  onToggleSubcategory={(subcat) => toggleSubcategory(category.name, subcat)}
-                  onEditTerm={handleEditTerm}
-                  editingTerm={editingTerm}
-                  setEditingTerm={setEditingTerm}
-                  onFilterByTag={handleFilterByTag}
-                  selectedTags={selectedTags}
+          <div className="grid gap-4">
+            {filteredTerms.length > 0 ? (
+              filteredTerms.map((term, index) => (
+                <TermItem 
+                  key={index}
+                  term={term}
+                  onDelete={() => confirmDeleteTerm(index)}
+                  onEdit={() => {}}
                 />
-              ))}
-            </TabsContent>
-            
-            <TabsContent value="table">
+              ))
+            ) : (
               <Card>
-                <CardHeader>
-                  <CardTitle>All Project Terms</CardTitle>
-                  <CardDescription>
-                    Viewing {filteredTerms.length} of {terms.length} total terms
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Term</TableHead>
-                          <TableHead>Value</TableHead>
-                          <TableHead>Unit</TableHead>
-                          <TableHead>Type</TableHead>
-                          <TableHead>Categories</TableHead>
-                          <TableHead>Tags</TableHead>
-                          <TableHead className="w-[80px]">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredTerms.map((term) => (
-                          <TableRow key={term.term}>
-                            <TableCell className="font-medium">{term.term}</TableCell>
-                            <TableCell>
-                              {editingTerm === term.term ? (
-                                <div className="flex items-center space-x-2">
-                                  <Input
-                                    className="w-20 h-8"
-                                    defaultValue={term.value}
-                                    onBlur={(e) => handleEditTerm(term.term, e.target.value)}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') {
-                                        handleEditTerm(term.term, e.currentTarget.value);
-                                      }
-                                      if (e.key === 'Escape') {
-                                        setEditingTerm(null);
-                                      }
-                                    }}
-                                    autoFocus
-                                  />
-                                  <Button 
-                                    size="sm" 
-                                    variant="ghost" 
-                                    className="h-8 w-8 p-0"
-                                    onClick={() => setEditingTerm(null)}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              ) : (
-                                <span>{term.value}</span>
-                              )}
-                            </TableCell>
-                            <TableCell>{term.unit}</TableCell>
-                            <TableCell>
-                              <Badge variant="outline">
-                                {term.type}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {term.categories.map((category) => (
-                                  <Badge 
-                                    key={category} 
-                                    variant="outline"
-                                    className="bg-muted"
-                                  >
-                                    {category}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {term.tags.map((tag) => (
-                                  <Badge 
-                                    key={tag}
-                                    variant="outline" 
-                                    className={`cursor-pointer ${selectedTags.includes(tag) ? 'bg-primary text-primary-foreground' : ''}`}
-                                    onClick={() => handleFilterByTag(tag)}
-                                  >
-                                    {tag}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setEditingTerm(term.term)}
-                              >
-                                <Edit2 className="h-4 w-4" />
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                <CardContent className="flex flex-col items-center justify-center py-8">
+                  <FileText className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-medium">No terms found</h3>
+                  <p className="text-sm text-muted-foreground text-center max-w-md mt-1 mb-4">
+                    {searchQuery || selectedCategory || selectedTags.length > 0 || selectedType 
+                      ? "No terms match your current filters. Try changing or clearing your filters."
+                      : "Start by adding terms to your project. Terms help define key parameters and assumptions."}
+                  </p>
+                  {searchQuery || selectedCategory || selectedTags.length > 0 || selectedType ? (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        setSelectedTags([]);
+                        setSelectedType(null);
+                        setSearchQuery('');
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  ) : (
+                    <Button onClick={() => setIsAddTermOpen(true)}>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add First Term
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="categories">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {categories
+              .filter(cat => !searchQuery || cat.name.toLowerCase().includes(searchQuery.toLowerCase()))
+              .map((category, index) => (
+                <TermCategoryCard 
+                  key={index}
+                  category={category}
+                  onView={() => {
+                    setActiveTab("all");
+                    setSelectedCategory(category.name);
+                  }}
+                />
+              ))}
+              
+            <Card className="flex flex-col items-center justify-center p-6 cursor-pointer hover:bg-muted/50 transition-colors"
+                onClick={() => setIsAddCategoryOpen(true)}>
+              <div className="rounded-full bg-muted p-4 mb-4">
+                <PlusCircle className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="text-lg font-medium">Add New Category</h3>
+              <p className="text-sm text-center text-muted-foreground mt-1">
+                Create a new category to organize your terms
+              </p>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Add Term Dialog */}
+      <Dialog open={isAddTermOpen} onOpenChange={setIsAddTermOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Term</DialogTitle>
+            <DialogDescription>
+              Add a new term or parameter to your project.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="term-name">Term Name*</Label>
+                <Input 
+                  id="term-name" 
+                  placeholder="DSCR"
+                  value={newTerm.term}
+                  onChange={(e) => setNewTerm({...newTerm, term: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="term-type">Type*</Label>
+                <Select 
+                  value={newTerm.type}
+                  onValueChange={(value) => setNewTerm({...newTerm, type: value})}
+                >
+                  <SelectTrigger id="term-type">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="financial">Financial</SelectItem>
+                    <SelectItem value="technical">Technical</SelectItem>
+                    <SelectItem value="commercial">Commercial</SelectItem>
+                    <SelectItem value="legal">Legal</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="term-value">Value*</Label>
+                <Input 
+                  id="term-value" 
+                  placeholder="1.2"
+                  value={newTerm.value}
+                  onChange={(e) => setNewTerm({...newTerm, value: e.target.value})}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="term-unit">Unit*</Label>
+                <Input 
+                  id="term-unit" 
+                  placeholder="ratio"
+                  value={newTerm.unit}
+                  onChange={(e) => setNewTerm({...newTerm, unit: e.target.value})}
+                />
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="term-source">Source</Label>
+              <Input 
+                id="term-source" 
+                placeholder="Lender"
+                value={newTerm.source}
+                onChange={(e) => setNewTerm({...newTerm, source: e.target.value})}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label>Categories</Label>
+              <ScrollArea className="h-20 border rounded-md p-2">
+                {categories.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {categories.map((category, index) => (
+                      <Badge 
+                        key={index}
+                        variant={newTerm.categories.includes(category.name) ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => {
+                          if (newTerm.categories.includes(category.name)) {
+                            handleRemoveCategoryFromTerm(category.name);
+                          } else {
+                            handleAddCategoryToTerm(category.name);
+                          }
+                        }}
+                      >
+                        {category.name}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground py-1 text-center">
+                    No categories created yet.
+                  </div>
+                )}
+              </ScrollArea>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label>Tags</Label>
+              <div className="flex items-center gap-2 mb-2">
+                <Input
+                  id="new-tag"
+                  placeholder="Add tag"
+                  className="flex-1"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && e.currentTarget.value) {
+                      handleAddTagToTerm(e.currentTarget.value);
+                      e.currentTarget.value = '';
+                    }
+                  }}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    const input = document.getElementById('new-tag') as HTMLInputElement;
+                    if (input.value) {
+                      handleAddTagToTerm(input.value);
+                      input.value = '';
+                    }
+                  }}
+                >
+                  <Tag className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <ScrollArea className="h-20 border rounded-md p-2">
+                <div className="flex flex-wrap gap-2">
+                  {newTerm.tags.length > 0 ? (
+                    newTerm.tags.map((tag, index) => (
+                      <Badge 
+                        key={index}
+                        variant="secondary"
+                        className="cursor-pointer"
+                        onClick={() => handleRemoveTagFromTerm(tag)}
+                      >
+                        {tag}
+                        <span className="ml-1 text-muted-foreground hover:text-foreground">×</span>
+                      </Badge>
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground py-1">
+                      No tags added yet. Type a tag and press Enter.
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="term-description">Description*</Label>
+              <Textarea 
+                id="term-description" 
+                placeholder="Describe this term and its significance..."
+                rows={3}
+                value={newTerm.description}
+                onChange={(e) => setNewTerm({...newTerm, description: e.target.value})}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddTermOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddTerm}>Add Term</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Category Dialog */}
+      <CreateCategoryDialog 
+        open={isAddCategoryOpen}
+        onOpenChange={setIsAddCategoryOpen}
+        onSubmit={handleAddCategory}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-destructive">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              Confirm Deletion
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this term? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsDeleteConfirmOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={deleteTerm}>
+              Delete Term
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
