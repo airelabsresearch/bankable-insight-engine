@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,8 +11,8 @@ import { Progress } from '@/components/ui/progress';
 import { Link } from 'react-router-dom';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Bar, BarChart as RechartsBarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { financialMetricsConfig } from '@/components/ui/chart-config';
 
-// Mock data for the projects
 const projectsData = [
   { id: 1, name: "Green Hydrogen Plant", completion: 78, status: "Active", type: "Hydrogen", irr: 12.4, npv: 3.8, payback: 4.2, co2Reduction: 15000 },
   { id: 2, name: "Solar + Storage", completion: 92, status: "Active", type: "Solar", irr: 15.1, npv: 5.2, payback: 3.5, co2Reduction: 8000 },
@@ -21,19 +20,10 @@ const projectsData = [
   { id: 4, name: "SAF Refinery", completion: 81, status: "Active", type: "SAF", irr: 11.3, npv: 4.5, payback: 4.8, co2Reduction: 18000 },
 ];
 
-// Configuration for the chart colors
-const chartConfig = {
-  irr: { label: "IRR (%)", theme: { light: "#4ade80" } },
-  npv: { label: "NPV ($M)", theme: { light: "#60a5fa" } },
-  payback: { label: "Payback (Years)", theme: { light: "#f97316" } },
-  co2Reduction: { label: "CO2 Reduction (tons)", theme: { light: "#8b5cf6" } },
-};
-
 const Projects: React.FC = () => {
   const [kpiView, setKpiView] = useState<'table' | 'chart'>('chart');
   const [selectedKPI, setSelectedKPI] = useState<'irr' | 'npv' | 'payback' | 'co2Reduction'>('irr');
 
-  // Chart data preparation
   const getChartData = () => {
     if (kpiView === 'chart') {
       return projectsData.map(project => ({
@@ -246,18 +236,18 @@ const Projects: React.FC = () => {
             ) : (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">{chartConfig[selectedKPI].label} by Project</CardTitle>
+                  <CardTitle className="text-lg">{financialMetricsConfig[selectedKPI].label} by Project</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[400px] w-full">
-                    <ChartContainer config={chartConfig}>
+                    <ChartContainer config={financialMetricsConfig}>
                       <RechartsBarChart data={getChartData()} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
                         <YAxis />
                         <Tooltip content={<ChartTooltipContent />} />
                         <Legend />
-                        <Bar dataKey={selectedKPI} fill={`var(--color-${selectedKPI})`} name={chartConfig[selectedKPI].label} />
+                        <Bar dataKey={selectedKPI} fill={`var(--color-${selectedKPI})`} name={financialMetricsConfig[selectedKPI].label} />
                       </RechartsBarChart>
                     </ChartContainer>
                   </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -361,6 +360,19 @@ const availableTags = [
   { id: "carbon", label: "Carbon" }
 ];
 
+// Define the Term interface to ensure type safety
+interface Term {
+  term: string;
+  value: number;
+  unit: string;
+  type: string;
+  source: string;
+  tags: string[];
+  categories: string[];
+  description: string;
+  usedIn?: string[];
+}
+
 const TermsExplorer: React.FC = () => {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -369,7 +381,7 @@ const TermsExplorer: React.FC = () => {
   const [expandedSubcategories, setExpandedSubcategories] = useState<Record<string, boolean>>({});
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [editingTerm, setEditingTerm] = useState<string | null>(null);
-  const [terms, setTerms] = useState(mockTerms);
+  const [terms, setTerms] = useState<Term[]>(mockTerms);
   const [categories, setCategories] = useState(mockCategories);
   
   // Filter states
@@ -460,20 +472,33 @@ const TermsExplorer: React.FC = () => {
     }));
   };
 
-  const handleEditTerm = (term: string, value: number | string) => {
-    setTerms(prev => 
-      prev.map(t => 
-        t.term === term 
-          ? { ...t, value } 
-          : t
-      )
-    );
-    setEditingTerm(null);
+  const handleEditTerm = (term: string, value: string | number) => {
+    // Convert string to number if possible
+    const numericValue = typeof value === 'string' ? parseFloat(value) : value;
     
-    toast({
-      title: "Term updated",
-      description: `${term} has been updated to ${value}${terms.find(t => t.term === term)?.unit}`,
-    });
+    // Only update if it's a valid number
+    if (!isNaN(numericValue)) {
+      setTerms(prev => 
+        prev.map(t => 
+          t.term === term 
+            ? { ...t, value: numericValue } 
+            : t
+        )
+      );
+      setEditingTerm(null);
+      
+      toast({
+        title: "Term updated",
+        description: `${term} has been updated to ${numericValue}${terms.find(t => t.term === term)?.unit}`,
+      });
+    } else {
+      // Handle invalid input
+      toast({
+        title: "Invalid value",
+        description: "Please enter a valid numeric value",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCreateCategory = (categoryData: any) => {
