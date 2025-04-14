@@ -1,302 +1,444 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlusCircle, Search, SlidersHorizontal, ChevronDown, Filter, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Chart } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Pencil, Copy, Trash2, ArrowUpDown, BarChart, LineChart } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { Link } from 'react-router-dom';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Bar, BarChart as RechartsBarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
-// Mock data for the projects
-const projectsData = [
-  { id: 1, name: "Green Hydrogen Plant", completion: 78, status: "Active", type: "Hydrogen", irr: 12.4, npv: 3.8, payback: 4.2, co2Reduction: 15000 },
-  { id: 2, name: "Solar + Storage", completion: 92, status: "Active", type: "Solar", irr: 15.1, npv: 5.2, payback: 3.5, co2Reduction: 8000 },
-  { id: 3, name: "E-Fuel Production", completion: 64, status: "Draft", type: "E-fuels", irr: 9.8, npv: 2.1, payback: 5.6, co2Reduction: 12000 },
-  { id: 4, name: "SAF Refinery", completion: 81, status: "Active", type: "SAF", irr: 11.3, npv: 4.5, payback: 4.8, co2Reduction: 18000 },
-];
-
-// Configuration for the chart colors
 const chartConfig = {
-  irr: { label: "IRR (%)", theme: { light: "#4ade80" } },
-  npv: { label: "NPV ($M)", theme: { light: "#60a5fa" } },
-  payback: { label: "Payback (Years)", theme: { light: "#f97316" } },
-  co2Reduction: { label: "CO2 Reduction (tons)", theme: { light: "#8b5cf6" } },
+  irr: { 
+    label: 'IRR', 
+    theme: { 
+      light: '#2563eb',
+      dark: '#3b82f6' 
+    } 
+  },
+  npv: { 
+    label: 'NPV', 
+    theme: { 
+      light: '#16a34a',
+      dark: '#22c55e' 
+    } 
+  },
+  payback: { 
+    label: 'Payback Period', 
+    theme: { 
+      light: '#ea580c',
+      dark: '#f97316' 
+    } 
+  },
+  co2Reduction: { 
+    label: 'CO2 Reduction', 
+    theme: { 
+      light: '#7c3aed',
+      dark: '#8b5cf6' 
+    } 
+  }
 };
 
-const Projects: React.FC = () => {
-  const [kpiView, setKpiView] = useState<'table' | 'chart'>('chart');
-  const [selectedKPI, setSelectedKPI] = useState<'irr' | 'npv' | 'payback' | 'co2Reduction'>('irr');
+// Sample project data
+const projects = [
+  {
+    id: 1,
+    name: 'Solar Farm - Phase 1',
+    location: 'Arizona, USA',
+    capacity: '50 MW',
+    technology: 'Solar PV',
+    developer: 'SunPower Inc.',
+    status: 'Active',
+    progress: 75,
+    lastUpdated: '2025-04-10',
+    roi: 12.7,
+    metrics: {
+      irr: 15.2,
+      npv: 24.5,
+      payback: 5.3,
+      co2Reduction: 42.8
+    },
+    tags: ['Renewable', 'Solar', 'Utility-Scale']
+  },
+  {
+    id: 2,
+    name: 'Offshore Wind Farm',
+    location: 'North Sea, UK',
+    capacity: '300 MW',
+    technology: 'Wind',
+    developer: 'WindForce Ltd.',
+    status: 'Planning',
+    progress: 30,
+    lastUpdated: '2025-04-08',
+    roi: 9.5,
+    metrics: {
+      irr: 11.8,
+      npv: 86.2,
+      payback: 7.1,
+      co2Reduction: 127.4
+    },
+    tags: ['Renewable', 'Wind', 'Offshore']
+  },
+  {
+    id: 3,
+    name: 'Hydroelectric Dam Upgrade',
+    location: 'Quebec, Canada',
+    capacity: '150 MW',
+    technology: 'Hydro',
+    developer: 'HydroQuebec',
+    status: 'Review',
+    progress: 50,
+    lastUpdated: '2025-04-12',
+    roi: 8.2,
+    metrics: {
+      irr: 9.7,
+      npv: 42.3,
+      payback: 8.5,
+      co2Reduction: 63.1
+    },
+    tags: ['Renewable', 'Hydro', 'Refurbishment']
+  },
+  {
+    id: 4,
+    name: 'Geothermal Plant',
+    location: 'Iceland',
+    capacity: '75 MW',
+    technology: 'Geothermal',
+    developer: 'GeoIce Energy',
+    status: 'Active',
+    progress: 90,
+    lastUpdated: '2025-04-05',
+    roi: 11.3,
+    metrics: {
+      irr: 13.5,
+      npv: 37.8,
+      payback: 6.2,
+      co2Reduction: 52.9
+    },
+    tags: ['Renewable', 'Geothermal']
+  },
+  {
+    id: 5,
+    name: 'Battery Storage Facility',
+    location: 'California, USA',
+    capacity: '100 MWh',
+    technology: 'Li-ion Storage',
+    developer: 'StorageTech',
+    status: 'Planning',
+    progress: 15,
+    lastUpdated: '2025-04-11',
+    roi: 10.8,
+    metrics: {
+      irr: 12.4,
+      npv: 18.6,
+      payback: 5.8,
+      co2Reduction: 34.2
+    },
+    tags: ['Storage', 'Energy Storage', 'Grid Support']
+  }
+];
 
-  // Chart data preparation
-  const getChartData = () => {
-    if (kpiView === 'chart') {
-      return projectsData.map(project => ({
-        name: project.name,
-        [selectedKPI]: project[selectedKPI],
-      }));
+const ProjectCard = ({ project }: { project: any }) => {
+  const [showDetails, setShowDetails] = useState(false);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Active': return 'bg-green-100 text-green-800';
+      case 'Planning': return 'bg-blue-100 text-blue-800';
+      case 'Review': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-    return [];
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <Card className="shadow-sm hover:shadow-md transition-all">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <div>
+            <CardTitle>{project.name}</CardTitle>
+            <CardDescription className="flex items-center mt-1">
+              <span className="mr-2">{project.location}</span>
+              <Badge variant="outline" className="ml-2">
+                {project.capacity}
+              </Badge>
+              <Badge variant="outline" className="ml-2">
+                {project.technology}
+              </Badge>
+            </CardDescription>
+          </div>
+          <Badge className={getStatusColor(project.status)}>
+            {project.status}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-2">
+        <div className="h-28">
+          <Chart
+            type="bar"
+            series={[
+              {
+                name: "Metrics",
+                data: [
+                  project.metrics.irr,
+                  project.metrics.npv / 10, // Scale down for visualization
+                  project.metrics.payback,
+                  project.metrics.co2Reduction / 10 // Scale down for visualization
+                ]
+              }
+            ]}
+            categories={["IRR (%)", "NPV ($M)", "Payback (Yrs)", "CO2 (kt)"]}
+            height={100}
+            colors={["#6366f1"]}
+            className="mt-2"
+          />
+        </div>
+        <div className="flex gap-2 mt-3 flex-wrap">
+          {project.tags.map((tag: string) => (
+            <Badge key={tag} variant="secondary" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      </CardContent>
+      <CardFooter className="border-t pt-3 flex justify-between text-sm text-muted-foreground">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
+          Updated: {project.lastUpdated}
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setShowDetails(!showDetails)}
+          className="h-auto p-0 font-medium text-primary">
+            {showDetails ? "Hide Details" : "Show Details"}
+        </Button>
+      </CardFooter>
+      {showDetails && (
+        <div className="px-6 pb-4">
+          <div className="border rounded-md p-3 bg-muted/50">
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <div className="text-muted-foreground">Developer</div>
+                <div className="font-medium">{project.developer}</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground">ROI</div>
+                <div className="font-medium">{project.roi}%</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground">IRR</div>
+                <div className="font-medium">{project.metrics.irr}%</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground">NPV</div>
+                <div className="font-medium">${project.metrics.npv}M</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground">Payback Period</div>
+                <div className="font-medium">{project.metrics.payback} years</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground">CO2 Reduction</div>
+                <div className="font-medium">{project.metrics.co2Reduction} kt/year</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+};
+
+const Projects = () => {
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [projectView, setProjectView] = useState("grid");
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
           <p className="text-muted-foreground">
-            Manage and monitor your bankability projects
+            Manage your project portfolio and monitor performance metrics.
           </p>
         </div>
+        <Button className="w-full md:w-auto" onClick={() => setIsCreateDialogOpen(true)}>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          New Project
+        </Button>
+      </div>
+
+      <div className="flex flex-col gap-4 md:flex-row md:items-center justify-between">
+        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto items-end">
+          <div className="flex-1 md:w-80">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search projects..."
+                className="w-full pl-8"
+              />
+            </div>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="h-10">
+                <Filter className="mr-2 h-4 w-4" />
+                <span>Filter</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[200px]">
+              <DropdownMenuItem>
+                <span>Status: Active</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <span>Type: Renewable</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <span>Location: All</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="h-10">
+                <ArrowUpDown className="mr-2 h-4 w-4" />
+                <span>Sort</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[200px]">
+              <DropdownMenuItem>
+                <span>Name (A-Z)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <span>Date (Newest)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <span>ROI (Highest)</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         <div className="flex items-center gap-2">
-          <Input type="search" placeholder="Search projects..." className="max-w-md" />
-          <Button className="eco-gradient">+ New Project</Button>
+          <Button
+            variant={projectView === "grid" ? "secondary" : "outline"}
+            size="icon"
+            onClick={() => setProjectView("grid")}
+            className="h-8 w-8"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <rect width="7" height="7" x="3" y="3" rx="1" />
+              <rect width="7" height="7" x="14" y="3" rx="1" />
+              <rect width="7" height="7" x="3" y="14" rx="1" />
+              <rect width="7" height="7" x="14" y="14" rx="1" />
+            </svg>
+          </Button>
+          <Button
+            variant={projectView === "list" ? "secondary" : "outline"}
+            size="icon"
+            onClick={() => setProjectView("list")}
+            className="h-8 w-8"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+            >
+              <line x1="8" x2="21" y1="6" y2="6" />
+              <line x1="8" x2="21" y1="12" y2="12" />
+              <line x1="8" x2="21" y1="18" y2="18" />
+              <line x1="3" x2="3.01" y1="6" y2="6" />
+              <line x1="3" x2="3.01" y1="12" y2="12" />
+              <line x1="3" x2="3.01" y1="18" y2="18" />
+            </svg>
+          </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="projects" className="w-full">
-        <TabsList className="grid w-full md:w-auto grid-cols-2">
-          <TabsTrigger value="projects">Projects</TabsTrigger>
-          <TabsTrigger value="kpis">KPIs</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="projects" className="mt-6">
-          <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
-            <Card className="col-span-1">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Active Projects</CardTitle>
-                  <Select>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Sort by" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="name">Name</SelectItem>
-                      <SelectItem value="date">Date Created</SelectItem>
-                      <SelectItem value="score">Bankability Score</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {projectsData.map((project) => (
-                    <div key={project.id} className="flex items-center justify-between p-3 border rounded-md">
-                      <div>
-                        <h3 className="font-medium">{project.name}</h3>
-                        <p className="text-sm text-muted-foreground">{project.type}</p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Button variant="ghost" size="icon">
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon">
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className={`text-sm font-medium px-2 py-0.5 rounded ${
-                          project.status === "Active" ? "bg-eco-100 text-eco-800" : "bg-amber-100 text-amber-800"
-                        }`}>
-                          {project.status}
-                        </span>
-                        <div className="flex items-center mt-1">
-                          <span className="text-sm mr-2">Completion:</span>
-                          <span className="text-sm font-medium">{project.completion}%</span>
-                        </div>
-                        
-                        <Progress 
-                          value={project.completion} 
-                          className="h-2 bg-gray-100"
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  <Button variant="ghost" className="w-full mt-2">Load More Projects</Button>
-                </div>
-              </CardContent>
-            </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {projects.map((project) => (
+          <ProjectCard key={project.id} project={project} />
+        ))}
+      </div>
 
-            <Card className="col-span-1">
-              <CardHeader>
-                <CardTitle>Project Overview</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <p>
-                    This section could contain a summary of all projects, key metrics, and overall status.
-                    Consider adding charts or graphs to visualize project data.
-                  </p>
-                  <div className="border rounded-md p-4 bg-muted">
-                    <h4 className="font-medium">Total Projects: 4</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Active: 3, Draft: 1
-                    </p>
-                  </div>
-                  <div className="border rounded-md p-4 bg-muted">
-                    <h4 className="font-medium">Average Completion: 79%</h4>
-                    <Progress value={79} className="h-2 bg-gray-200" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="kpis" className="mt-6">
-          <div className="space-y-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h2 className="text-2xl font-semibold tracking-tight">Project Key Performance Indicators</h2>
-                <p className="text-muted-foreground">Compare performance metrics across all projects</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center space-x-2 rounded-md border p-1">
-                  <Button 
-                    variant={kpiView === 'chart' ? 'default' : 'ghost'} 
-                    size="sm" 
-                    onClick={() => setKpiView('chart')}
-                    className="gap-1"
-                  >
-                    <BarChart className="h-4 w-4" />
-                    Chart
-                  </Button>
-                  <Button 
-                    variant={kpiView === 'table' ? 'default' : 'ghost'} 
-                    size="sm" 
-                    onClick={() => setKpiView('table')}
-                    className="gap-1"
-                  >
-                    <LineChart className="h-4 w-4" />
-                    Table
-                  </Button>
-                </div>
-                <Select value={selectedKPI} onValueChange={(value: any) => setSelectedKPI(value)}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select KPI" />
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>Add a new project to your portfolio.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="project-name">Project Name</Label>
+              <Input id="project-name" placeholder="Solar Farm - Phase 2" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="technology">Technology</Label>
+                <Select>
+                  <SelectTrigger id="technology">
+                    <SelectValue placeholder="Select" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="irr">IRR (%)</SelectItem>
-                    <SelectItem value="npv">NPV ($M)</SelectItem>
-                    <SelectItem value="payback">Payback Period (Years)</SelectItem>
-                    <SelectItem value="co2Reduction">CO2 Reduction (tons)</SelectItem>
+                    <SelectItem value="solar">Solar PV</SelectItem>
+                    <SelectItem value="wind">Wind</SelectItem>
+                    <SelectItem value="hydro">Hydro</SelectItem>
+                    <SelectItem value="storage">Storage</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="status">Status</Label>
+                <Select>
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="planning">Planning</SelectItem>
+                    <SelectItem value="review">Review</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-
-            {kpiView === 'table' ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Project KPI Comparison</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Project</TableHead>
-                        <TableHead>
-                          <div className="flex items-center">
-                            IRR (%)
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className="flex items-center">
-                            NPV ($M)
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className="flex items-center">
-                            Payback (Years)
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className="flex items-center">
-                            CO2 Reduction (tons)
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          </div>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {projectsData.map((project) => (
-                        <TableRow key={project.id}>
-                          <TableCell className="font-medium">{project.name}</TableCell>
-                          <TableCell>{project.irr}%</TableCell>
-                          <TableCell>${project.npv}M</TableCell>
-                          <TableCell>{project.payback} years</TableCell>
-                          <TableCell>{project.co2Reduction.toLocaleString()}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">{chartConfig[selectedKPI].label} by Project</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[400px] w-full">
-                    <ChartContainer config={chartConfig}>
-                      <RechartsBarChart data={getChartData()} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" angle={-45} textAnchor="end" height={70} />
-                        <YAxis />
-                        <Tooltip content={<ChartTooltipContent />} />
-                        <Legend />
-                        <Bar dataKey={selectedKPI} fill={`var(--color-${selectedKPI})`} name={chartConfig[selectedKPI].label} />
-                      </RechartsBarChart>
-                    </ChartContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            <Card>
-              <CardHeader>
-                <CardTitle>KPI Insights</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                  <div className="border rounded-md p-4">
-                    <p className="text-sm text-muted-foreground">Average IRR</p>
-                    <h3 className="text-2xl font-bold mt-1">12.15%</h3>
-                    <p className="text-xs text-green-600 mt-1">+2.3% above target</p>
-                  </div>
-                  <div className="border rounded-md p-4">
-                    <p className="text-sm text-muted-foreground">Average NPV</p>
-                    <h3 className="text-2xl font-bold mt-1">$3.9M</h3>
-                    <p className="text-xs text-green-600 mt-1">+$0.4M above target</p>
-                  </div>
-                  <div className="border rounded-md p-4">
-                    <p className="text-sm text-muted-foreground">Average Payback</p>
-                    <h3 className="text-2xl font-bold mt-1">4.5 years</h3>
-                    <p className="text-xs text-amber-600 mt-1">0.5 years above target</p>
-                  </div>
-                  <div className="border rounded-md p-4">
-                    <p className="text-sm text-muted-foreground">Total CO2 Reduction</p>
-                    <h3 className="text-2xl font-bold mt-1">53,000 tons</h3>
-                    <p className="text-xs text-green-600 mt-1">+8,000 tons above target</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="grid gap-2">
+              <Label htmlFor="location">Location</Label>
+              <Input id="location" placeholder="California, USA" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="capacity">Capacity</Label>
+              <Input id="capacity" placeholder="100 MW" />
+            </div>
           </div>
-        </TabsContent>
-      </Tabs>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setIsCreateDialogOpen(false)}>Create Project</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
