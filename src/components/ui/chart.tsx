@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
@@ -352,6 +353,130 @@ function getPayloadConfigFromPayload(
     ? config[configLabelKey]
     : config[key as keyof typeof config]
 }
+
+// Create a simplified Chart component for use in the Projects page
+interface ChartProps {
+  type: "bar" | "line" | "area" | "pie";
+  series: {
+    name: string;
+    data: number[];
+  }[];
+  categories?: string[];
+  height?: number;
+  colors?: string[];
+  className?: string;
+}
+
+export const Chart: React.FC<ChartProps> = ({
+  type,
+  series,
+  categories = [],
+  height = 300,
+  colors = ["#6366f1"],
+  className
+}) => {
+  const chartConfig = React.useMemo(() => {
+    const config: ChartConfig = {};
+    series.forEach((s, i) => {
+      config[s.name] = {
+        label: s.name,
+        color: colors[i % colors.length]
+      };
+    });
+    return config;
+  }, [series, colors]);
+
+  return (
+    <ChartContainer className={className} config={chartConfig} style={{ height }}>
+      {type === "bar" && (
+        <RechartsPrimitive.BarChart data={categories.map((cat, i) => ({
+          name: cat,
+          ...series.reduce((acc, s) => ({ ...acc, [s.name]: s.data[i] }), {})
+        }))}>
+          <RechartsPrimitive.CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <RechartsPrimitive.XAxis dataKey="name" />
+          <RechartsPrimitive.YAxis />
+          <ChartTooltip />
+          {series.map((s, i) => (
+            <RechartsPrimitive.Bar 
+              key={s.name}
+              dataKey={s.name} 
+              fill={colors[i % colors.length]} 
+            />
+          ))}
+        </RechartsPrimitive.BarChart>
+      )}
+      
+      {type === "line" && (
+        <RechartsPrimitive.LineChart data={categories.map((cat, i) => ({
+          name: cat,
+          ...series.reduce((acc, s) => ({ ...acc, [s.name]: s.data[i] }), {})
+        }))}>
+          <RechartsPrimitive.CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <RechartsPrimitive.XAxis dataKey="name" />
+          <RechartsPrimitive.YAxis />
+          <ChartTooltip />
+          {series.map((s, i) => (
+            <RechartsPrimitive.Line 
+              key={s.name}
+              type="monotone" 
+              dataKey={s.name} 
+              stroke={colors[i % colors.length]} 
+            />
+          ))}
+        </RechartsPrimitive.LineChart>
+      )}
+      
+      {type === "area" && (
+        <RechartsPrimitive.AreaChart data={categories.map((cat, i) => ({
+          name: cat,
+          ...series.reduce((acc, s) => ({ ...acc, [s.name]: s.data[i] }), {})
+        }))}>
+          <RechartsPrimitive.CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <RechartsPrimitive.XAxis dataKey="name" />
+          <RechartsPrimitive.YAxis />
+          <ChartTooltip />
+          {series.map((s, i) => (
+            <RechartsPrimitive.Area 
+              key={s.name}
+              type="monotone" 
+              dataKey={s.name} 
+              stroke={colors[i % colors.length]}
+              fill={colors[i % colors.length]} 
+              fillOpacity={0.2}
+            />
+          ))}
+        </RechartsPrimitive.AreaChart>
+      )}
+
+      {type === "pie" && (
+        <RechartsPrimitive.PieChart>
+          <ChartTooltip />
+          <RechartsPrimitive.Pie
+            data={series[0].data.map((value, i) => ({
+              name: categories[i] || `Item ${i+1}`,
+              value
+            }))}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius="80%"
+            fill="#8884d8"
+          >
+            {series[0].data.map((_, i) => (
+              <RechartsPrimitive.Cell 
+                key={`cell-${i}`}
+                fill={colors[i % colors.length]} 
+              />
+            ))}
+          </RechartsPrimitive.Pie>
+          <RechartsPrimitive.Legend />
+        </RechartsPrimitive.PieChart>
+      )}
+    </ChartContainer>
+  );
+};
 
 export {
   ChartContainer,

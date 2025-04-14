@@ -13,66 +13,86 @@ import { Filter, X, Tag, Database, FileEdit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface TermsFiltersProps {
+  categories: string[];
+  tags: string[];
+  selectedCategory: string | null;
   selectedTags: string[];
-  setSelectedTags: React.Dispatch<React.SetStateAction<string[]>>;
-  selectedTypes: string[];
-  setSelectedTypes: React.Dispatch<React.SetStateAction<string[]>>;
-  selectedSources: string[];
-  setSelectedSources: React.Dispatch<React.SetStateAction<string[]>>;
-  availableTags: { id: string; label: string }[];
-  clearFilters: () => void;
+  selectedType: string | null;
+  onCategoryChange: React.Dispatch<React.SetStateAction<string | null>>;
+  onTagSelect: (tag: string) => void;
+  onTypeChange: React.Dispatch<React.SetStateAction<string | null>>;
+  onClearFilters: () => void;
 }
 
 export const TermsFilters: React.FC<TermsFiltersProps> = ({
+  categories,
+  tags,
+  selectedCategory,
   selectedTags,
-  setSelectedTags,
-  selectedTypes,
-  setSelectedTypes,
-  selectedSources,
-  setSelectedSources,
-  availableTags,
-  clearFilters
+  selectedType,
+  onCategoryChange,
+  onTagSelect,
+  onTypeChange,
+  onClearFilters
 }) => {
   const types = [
-    { id: "numeric", label: "Numeric" },
-    { id: "shared", label: "Shared" },
-    { id: "derived", label: "Derived" }
+    { id: "financial", label: "Financial" },
+    { id: "technical", label: "Technical" },
+    { id: "commercial", label: "Commercial" },
+    { id: "legal", label: "Legal" },
+    { id: "other", label: "Other" }
   ];
   
-  const sources = [
-    { id: "manual", label: "Manual" },
-    { id: "calculated", label: "Calculated" },
-    { id: "derived", label: "Derived" }
-  ];
-
-  const hasFilters = selectedTags.length > 0 || selectedTypes.length > 0 || selectedSources.length > 0;
-  
-  const toggleTag = (tagId: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tagId) 
-        ? prev.filter(id => id !== tagId)
-        : [...prev, tagId]
-    );
-  };
-  
-  const toggleType = (typeId: string) => {
-    setSelectedTypes(prev => 
-      prev.includes(typeId) 
-        ? prev.filter(id => id !== typeId)
-        : [...prev, typeId]
-    );
-  };
-  
-  const toggleSource = (sourceId: string) => {
-    setSelectedSources(prev => 
-      prev.includes(sourceId) 
-        ? prev.filter(id => id !== sourceId)
-        : [...prev, sourceId]
-    );
-  };
+  const hasFilters = selectedCategory !== null || selectedTags.length > 0 || selectedType !== null;
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-2 flex-wrap">
+      {/* Category Filter */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="h-10">
+            <Database className="h-4 w-4 mr-2" />
+            Category
+            {selectedCategory && (
+              <Badge variant="secondary" className="ml-2 h-5 px-1">1</Badge>
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-48">
+          <DropdownMenuLabel>Filter by category</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {categories.map((category) => (
+            <DropdownMenuCheckboxItem
+              key={category}
+              checked={selectedCategory === category}
+              onCheckedChange={() => {
+                if (selectedCategory === category) {
+                  onCategoryChange(null);
+                } else {
+                  onCategoryChange(category);
+                }
+              }}
+            >
+              {category}
+            </DropdownMenuCheckboxItem>
+          ))}
+          {selectedCategory && (
+            <>
+              <DropdownMenuSeparator />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start h-8 px-2"
+                onClick={() => onCategoryChange(null)}
+              >
+                <X className="mr-2 h-4 w-4" />
+                Clear category
+              </Button>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
       {/* Tags Filter */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -89,13 +109,13 @@ export const TermsFilters: React.FC<TermsFiltersProps> = ({
         <DropdownMenuContent align="start" className="w-48">
           <DropdownMenuLabel>Filter by tags</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {availableTags.map((tag) => (
+          {tags.map((tag) => (
             <DropdownMenuCheckboxItem
-              key={tag.id}
-              checked={selectedTags.includes(tag.id)}
-              onCheckedChange={() => toggleTag(tag.id)}
+              key={tag}
+              checked={selectedTags.includes(tag)}
+              onCheckedChange={() => onTagSelect(tag)}
             >
-              {tag.label}
+              {tag}
             </DropdownMenuCheckboxItem>
           ))}
           {selectedTags.length > 0 && (
@@ -105,7 +125,10 @@ export const TermsFilters: React.FC<TermsFiltersProps> = ({
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start h-8 px-2"
-                onClick={() => setSelectedTags([])}
+                onClick={() => {
+                  // Clear all selected tags
+                  selectedTags.forEach(tag => onTagSelect(tag));
+                }}
               >
                 <X className="mr-2 h-4 w-4" />
                 Clear tags
@@ -119,80 +142,42 @@ export const TermsFilters: React.FC<TermsFiltersProps> = ({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="h-10">
-            <Database className="h-4 w-4 mr-2" />
-            Types
-            {selectedTypes.length > 0 && (
-              <Badge variant="secondary" className="ml-2 h-5 px-1">
-                {selectedTypes.length}
-              </Badge>
+            <FileEdit className="h-4 w-4 mr-2" />
+            Type
+            {selectedType && (
+              <Badge variant="secondary" className="ml-2 h-5 px-1">1</Badge>
             )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48">
-          <DropdownMenuLabel>Filter by types</DropdownMenuLabel>
+          <DropdownMenuLabel>Filter by type</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {types.map((type) => (
             <DropdownMenuCheckboxItem
               key={type.id}
-              checked={selectedTypes.includes(type.id)}
-              onCheckedChange={() => toggleType(type.id)}
+              checked={selectedType === type.id}
+              onCheckedChange={() => {
+                if (selectedType === type.id) {
+                  onTypeChange(null);
+                } else {
+                  onTypeChange(type.id);
+                }
+              }}
             >
               {type.label}
             </DropdownMenuCheckboxItem>
           ))}
-          {selectedTypes.length > 0 && (
+          {selectedType && (
             <>
               <DropdownMenuSeparator />
               <Button
                 variant="ghost"
                 size="sm"
                 className="w-full justify-start h-8 px-2"
-                onClick={() => setSelectedTypes([])}
+                onClick={() => onTypeChange(null)}
               >
                 <X className="mr-2 h-4 w-4" />
-                Clear types
-              </Button>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Sources Filter */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="h-10">
-            <FileEdit className="h-4 w-4 mr-2" />
-            Sources
-            {selectedSources.length > 0 && (
-              <Badge variant="secondary" className="ml-2 h-5 px-1">
-                {selectedSources.length}
-              </Badge>
-            )}
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-48">
-          <DropdownMenuLabel>Filter by sources</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {sources.map((source) => (
-            <DropdownMenuCheckboxItem
-              key={source.id}
-              checked={selectedSources.includes(source.id)}
-              onCheckedChange={() => toggleSource(source.id)}
-            >
-              {source.label}
-            </DropdownMenuCheckboxItem>
-          ))}
-          {selectedSources.length > 0 && (
-            <>
-              <DropdownMenuSeparator />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-start h-8 px-2"
-                onClick={() => setSelectedSources([])}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Clear sources
+                Clear type
               </Button>
             </>
           )}
@@ -205,7 +190,7 @@ export const TermsFilters: React.FC<TermsFiltersProps> = ({
           variant="ghost" 
           size="sm"
           className="h-10"
-          onClick={clearFilters}
+          onClick={onClearFilters}
         >
           <X className="h-4 w-4 mr-2" />
           Clear all
