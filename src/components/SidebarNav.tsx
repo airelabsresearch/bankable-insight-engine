@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { BarChart3, FileSpreadsheet, Boxes, GitBranch, ShieldCheck, FileText, Users, Home, List } from 'lucide-react';
@@ -40,6 +39,13 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isOpen, setIsOpen }) => {
         "border-r border-gray-200 bg-sidebar"
       )}
     >
+      <div className="p-4 flex items-center justify-center">
+        <img 
+          src="/lovable-uploads/cf1db74f-a591-49eb-83c9-6e2cba0ab1b9.png" 
+          alt="Aire Labs Logo" 
+          className="w-16 h-16 object-contain"
+        />
+      </div>
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="px-2 space-y-1">
           {links.map((link) => (
