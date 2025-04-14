@@ -23,12 +23,12 @@ const NavBar: React.FC<NavBarProps> = ({ toggleSidebar }) => {
             </Button>
           )}
           <Link to="/" className="flex items-center space-x-2">
-            <img 
-              src="/lovable-uploads/d8895f72-22c4-497d-aa88-ffde6b01ae3f.png" 
-              alt="Aire Labs Logo" 
-              className="w-8 h-8 rounded-md"
-            />
-            <span className="text-xl font-bold text-gray-900">Aire Labs</span>
+            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-gradient-to-r from-bankable-600 to-eco-600">
+              <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 4V20M17 4V20M7 4V20M3 8H21M3 16H21" />
+              </svg>
+            </div>
+            <span className="text-xl font-bold text-gray-900">Bankable</span>
           </Link>
         </div>
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { BarChart3, FileSpreadsheet, Boxes, GitBranch, ShieldCheck, FileText, Users, Home, List } from 'lucide-react';
@@ -63,8 +62,8 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isOpen, setIsOpen }) => {
       <div className="p-4 border-t border-sidebar-border">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-sidebar-foreground/70">Aire Labs v1.0</p>
-            <p className="text-xs text-sidebar-foreground/50">© 2025 Aire Labs</p>
+            <p className="text-xs font-medium text-sidebar-foreground/70">Bankable v1.0</p>
+            <p className="text-xs text-sidebar-foreground/50">© 2025 Bankable</p>
           </div>
         </div>
       </div>
