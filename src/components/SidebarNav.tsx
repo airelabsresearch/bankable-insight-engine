@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { BarChart3, FileSpreadsheet, Boxes, GitBranch, ShieldCheck, FileText, Users, Home, List } from 'lucide-react';
@@ -18,7 +17,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isOpen, setIsOpen }) => {
     { name: 'Projects', path: '/projects', icon: Boxes },
     { name: 'Model Upload', path: '/upload', icon: FileSpreadsheet },
     { name: 'Scenarios', path: '/scenarios', icon: GitBranch },
-    { name: 'Risk Analysis', path: '/risk', icon: ShieldCheck },
+    { name: 'Risk Register', path: '/risk', icon: ShieldCheck },
     { name: 'Project Terms', path: '/terms', icon: List },
     { name: 'Reports', path: '/reports', icon: FileText },
     { name: 'Analytics', path: '/analytics', icon: BarChart3 },

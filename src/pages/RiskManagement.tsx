@@ -14,7 +14,7 @@ import { RiskForm } from '@/components/risks/RiskForm';
 import { RiskFilters } from '@/components/risks/RiskFilters';
 import { RiskDashboard } from '@/components/risks/RiskDashboard';
 
-export function RiskManagement() {
+const RiskManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isAddingRisk, setIsAddingRisk] = useState(false);
   const { risks, addRisk, updateRisk, deleteRisk, setFilters } = useRisks();
@@ -87,4 +87,6 @@ export function RiskManagement() {
       )}
     </div>
   );
-} 
+};
+
+export default RiskManagement; 

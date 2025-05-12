@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,7 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import FileUploadPage from "./pages/Upload";
 import Scenarios from "./pages/Scenarios";
-import RiskAnalysis from "./pages/RiskAnalysis";
+import RiskManagement from "./pages/RiskManagement";
 import TermsExplorer from "./pages/TermsExplorer";
 
 const queryClient = new QueryClient();
@@ -27,7 +26,7 @@ const App = () => (
             <Route path="projects" element={<Projects />} />
             <Route path="upload" element={<FileUploadPage />} />
             <Route path="scenarios" element={<Scenarios />} />
-            <Route path="risk" element={<RiskAnalysis />} />
+            <Route path="risk" element={<RiskManagement />} />
             <Route path="terms" element={<TermsExplorer />} />
             {/* These routes will be implemented in future iterations */}
             <Route path="reports" element={<NotFound />} />
