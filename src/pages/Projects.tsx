@@ -247,7 +247,7 @@ const Projects: React.FC = () => {
                         <YAxis />
                         <Tooltip content={<ChartTooltipContent />} />
                         <Legend />
-                        <Bar dataKey={selectedKPI} fill={`var(--color-${selectedKPI})`} name={financialMetricsConfig[selectedKPI].label} />
+                        <Bar dataKey={selectedKPI} fill={`var(--color-${selectedKPI})`} name={String(financialMetricsConfig[selectedKPI].label)} />
                       </RechartsBarChart>
                     </ChartContainer>
                   </div>
