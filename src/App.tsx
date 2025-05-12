@@ -12,7 +12,6 @@ import FileUploadPage from "./pages/Upload";
 import Scenarios from "./pages/Scenarios";
 import RiskAnalysis from "./pages/RiskAnalysis";
 import TermsExplorer from "./pages/TermsExplorer";
-import RiskRegister from "./pages/RiskRegister";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +28,6 @@ const App = () => (
             <Route path="upload" element={<FileUploadPage />} />
             <Route path="scenarios" element={<Scenarios />} />
             <Route path="risk" element={<RiskAnalysis />} />
-            <Route path="risk-register" element={<RiskRegister />} />
             <Route path="terms" element={<TermsExplorer />} />
             {/* These routes will be implemented in future iterations */}
             <Route path="reports" element={<NotFound />} />
